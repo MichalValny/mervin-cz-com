@@ -25,14 +25,6 @@ const image = getPostImage(post);
 <BaseLayout title={title} description={getExcerpt(post)} image={image ?? undefined} stickyHeader={false}>
   <div class="container page-layout">
     <article class="main-content">
-      <nav class="breadcrumb" aria-label="Drobečková navigace">
-        <a href="/">Domů</a>
-        <span class="breadcrumb-sep" aria-hidden="true">/</span>
-        <span class="breadcrumb-date">{post.year}/{String(post.month).padStart(2, '0')}/{String(post.day).padStart(2, '0')}</span>
-        <span class="breadcrumb-sep" aria-hidden="true">/</span>
-        <span class="breadcrumb-current">{title}</span>
-      </nav>
-
       <header class="article-header">
         {category && (
           <a href={`/kategorie/${category.slug}/`} class="article-category">{category.name}</a>

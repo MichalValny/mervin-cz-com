@@ -514,28 +514,6 @@ body.header-static .site-header {
   letter-spacing: 0.02em;
 }
 
-.breadcrumb {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-  margin-bottom: 1.5rem;
-}
-
-.breadcrumb a {
-  color: var(--color-text-muted);
-}
-
-.breadcrumb a:hover {
-  color: var(--color-accent);
-}
-
-.breadcrumb-current {
-  color: var(--color-text-muted);
-  min-width: 0;
-}
-
 .article-content {
   font-family: var(--font-sans);
   font-size: 1.05rem;
@@ -870,26 +848,6 @@ body.header-static .site-header {
 
   .page-layout {
     padding: 1rem 0 2.5rem;
-  }
-
-  .breadcrumb {
-    font-size: 0.78rem;
-    margin-bottom: 1rem;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-
-  .breadcrumb::-webkit-scrollbar {
-    display: none;
-  }
-
-  .breadcrumb-current {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 55vw;
   }
 
   .post-card-excerpt {
