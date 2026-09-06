@@ -32,18 +32,6 @@ import { instagram, posts } from '../lib/data';
 
     <section class="section-block">
       <div class="section-header">
-        <h2><a href="/kategorie/kola/">Kola</a></h2>
-        <a href="/kategorie/kola/">Všechny →</a>
-      </div>
-      <div class="post-grid">
-        {posts.filter((p) => p.categories.some((c) => c.slug === 'kola')).slice(0, 2).map((post) => (
-          <PostCard post={post} />
-        ))}
-      </div>
-    </section>
-
-    <section class="section-block">
-      <div class="section-header">
         <h2>Nejnovější příspěvky</h2>
       </div>
       <div class="post-grid">
