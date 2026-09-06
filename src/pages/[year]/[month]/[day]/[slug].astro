@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../../../../layouts/BaseLayout.astro';
 import GalleryEmbed from '../../../../components/GalleryEmbed.astro';
-import Sidebar from '../../../../components/Sidebar.astro';
 import { posts } from '../../../../lib/data';
 import { decodeHtml, formatDate, getExcerpt, getPostImage } from '../../../../lib/utils';
 
@@ -50,8 +49,6 @@ const image = getPostImage(post);
         <div class="article-content" set:html={post.content} />
       )}
     </article>
-
-    <Sidebar />
   </div>
 </BaseLayout>
 

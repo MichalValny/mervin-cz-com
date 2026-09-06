@@ -280,66 +280,12 @@ body.header-static .site-header {
   color: var(--color-accent);
 }
 
-.search-form {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.search-form input {
-  padding: 0.55rem 0.85rem;
-  border: 1px solid var(--color-chrome-border);
-  border-radius: 999px;
-  background: var(--color-chrome-input);
-  color: var(--color-chrome-text);
-  font: inherit;
-  min-width: 160px;
-  min-height: 44px;
-}
-
-.search-form input::placeholder {
-  color: var(--color-chrome-text-muted);
-}
-
-.search-form button {
-  padding: 0.55rem 1rem;
-  border: none;
-  border-radius: 999px;
-  background: var(--color-accent);
-  color: white;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.search-btn-icon {
-  display: none;
-}
-
-.search-form button:hover {
-  background: var(--color-accent-dark);
-}
-
-/* Layout */
+/* Hero sections on homepage */
 .page-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: 1fr;
   gap: 2rem;
   padding: 2rem 0 4rem;
-}
-
-@media (min-width: 1280px) {
-  .page-layout {
-    grid-template-columns: minmax(0, 1fr) 300px;
-    gap: 2.5rem;
-  }
-}
-
-.page-layout.full-width {
-  grid-template-columns: 1fr;
 }
 
 .main-content {
@@ -651,56 +597,6 @@ body.header-static .site-header {
   min-height: 480px;
 }
 
-/* Sidebar */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.sidebar-widget {
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem 1.35rem;
-  box-shadow: var(--shadow-sm);
-}
-
-.sidebar-widget h3 {
-  margin: 0 0 0.85rem;
-  font-size: 1.05rem;
-  font-family: var(--font-heading);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--color-text);
-}
-
-.sidebar-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.sidebar-list li + li {
-  margin-top: 0.15rem;
-}
-
-.sidebar-list a {
-  display: block;
-  padding: 0.4rem 0;
-  color: var(--color-text);
-  font-size: 0.9rem;
-  line-height: 1.45;
-}
-
-.sidebar-list a:hover {
-  color: var(--color-accent);
-}
-
-.sidebar-list .count {
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
-}
-
 /* Category page */
 .page-title {
   font-family: var(--font-heading);
@@ -713,39 +609,6 @@ body.header-static .site-header {
 .page-description {
   color: var(--color-text-muted);
   margin: 0 0 2rem;
-}
-
-/* Contribute page */
-.contribute-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-}
-
-.contribute-item {
-  display: block;
-  padding: 1rem 1.25rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  color: var(--color-text);
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.contribute-item:hover {
-  border-color: var(--color-accent);
-  box-shadow: var(--shadow-sm);
-  color: var(--color-text);
-}
-
-.contribute-item strong {
-  display: block;
-  margin-bottom: 0.25rem;
-}
-
-.contribute-item span {
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
 }
 
 /* Footer */
@@ -823,10 +686,6 @@ body.header-static .site-header {
     justify-content: center;
   }
 
-  .search-form {
-    flex-shrink: 0;
-  }
-
   .logo-img {
     max-width: none;
   }
@@ -847,10 +706,6 @@ body.header-static .site-header {
     grid-row: auto;
     grid-column: auto;
   }
-
-  .sidebar {
-    gap: 1rem;
-  }
 }
 
 @media (max-width: 768px) {
@@ -862,17 +717,11 @@ body.header-static .site-header {
     display: grid;
     grid-template-areas:
       "bar"
-      "search"
       "nav";
   }
 
   .header-bar {
     grid-area: bar;
-  }
-
-  .search-form {
-    grid-area: search;
-    width: 100%;
   }
 
   .header-nav {
@@ -938,28 +787,6 @@ body.header-static .site-header {
     display: block;
   }
 
-  .search-form {
-    width: 100%;
-  }
-
-  .search-form input {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .search-btn-text {
-    display: none;
-  }
-
-  .search-btn-icon {
-    display: block;
-  }
-
-  .search-form button {
-    padding: 0.55rem 0.85rem;
-    min-width: 44px;
-  }
-
   .section-block {
     margin-bottom: 2.25rem;
   }
@@ -1020,10 +847,6 @@ body.header-static .site-header {
 
   .footer-categories {
     gap: 0.65rem 1rem;
-  }
-
-  .contribute-grid {
-    grid-template-columns: 1fr;
   }
 }
 

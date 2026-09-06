@@ -54,11 +54,10 @@ export const mainNav: NavItem[] = [
       href: `/kategorie/${c.slug}/`,
     })),
   },
-  { label: 'Jak přispívat', href: '/jak-prispivat/' },
 ];
 
 export const featuredSections = [
-  { title: 'Co je nového', href: '/jak-prispivat/', slugs: ['cestovani', 'zabijacky', 'motorky'] },
+  { title: 'Co je nového', href: '/', slugs: ['cestovani', 'zabijacky', 'motorky'] },
   { title: 'Zajímavosti', href: '/kategorie/zajimavosti/', slug: 'zajimavosti' },
   { title: 'Kola', href: '/kategorie/kola/', slug: 'kola' },
   { title: 'Motorky', href: '/kategorie/motorky/', slug: 'motorky' },
