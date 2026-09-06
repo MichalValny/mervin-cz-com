@@ -8,9 +8,10 @@ interface Props {
   title?: string;
   description?: string;
   image?: string;
+  stickyHeader?: boolean;
 }
 
-const { title, description, image } = Astro.props;
+const { title, description, image, stickyHeader = true } = Astro.props;
 const pageTitle = title ? `${title} – ${site.siteName}` : site.siteName;
 const pageDescription = description ?? 'Mervinovy stránky – motorky, kola, cestování a společné akce od roku 1996.';
 const pageImage = image ?? site.logo;
@@ -34,7 +35,7 @@ const pageImage = image ?? site.logo;
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet" />
     <slot name="head" />
   </head>
-  <body>
+  <body class:list={{ 'header-static': !stickyHeader }}>
     <a class="skip-link" href="#content">Přeskočit na obsah</a>
     <Header />
     <main id="content">

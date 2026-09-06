@@ -23,7 +23,7 @@ const category = post.categories[0];
 const image = getPostImage(post);
 ---
 
-<BaseLayout title={title} description={getExcerpt(post)} image={image ?? undefined}>
+<BaseLayout title={title} description={getExcerpt(post)} image={image ?? undefined} stickyHeader={false}>
   <div class="container page-layout">
     <article class="main-content">
       <nav class="breadcrumb" aria-label="Drobečková navigace">
