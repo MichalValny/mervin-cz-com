@@ -696,7 +696,7 @@ body.header-static .site-header {
   align-items: center;
   min-height: 480px;
   background: #0a0a0a;
-  touch-action: pan-y pinch-zoom;
+  touch-action: none;
 }
 
 .photo-gallery-main-wrap {
@@ -708,6 +708,8 @@ body.header-static .site-header {
   border: 0;
   background: transparent;
   cursor: zoom-in;
+  overflow: hidden;
+  touch-action: none;
 }
 
 .photo-gallery-main {
@@ -718,6 +720,12 @@ body.header-static .site-header {
   max-height: 70vh;
   object-fit: contain;
   background: #0a0a0a;
+  transition: transform 0.18s ease-out;
+  will-change: transform;
+}
+
+.photo-gallery-main.is-dragging {
+  transition: none;
 }
 
 .photo-gallery-nav {
@@ -809,7 +817,7 @@ body.header-static .site-header {
   align-items: center;
   justify-items: center;
   background: rgba(0, 0, 0, 0.92);
-  touch-action: pan-y pinch-zoom;
+  touch-action: none;
 }
 
 .photo-gallery-lightbox[hidden] {
@@ -826,6 +834,12 @@ body.photo-gallery-open {
   max-width: min(96vw, 1400px);
   max-height: 88vh;
   object-fit: contain;
+  transition: transform 0.18s ease-out;
+  will-change: transform;
+}
+
+.photo-gallery-lightbox-img.is-dragging {
+  transition: none;
 }
 
 .photo-gallery-lightbox-close {
