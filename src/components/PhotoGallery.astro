@@ -157,7 +157,7 @@ const first = images[0];
     ) {
       const MIN_SCALE = 1;
       const MAX_SCALE = 4;
-      const PINCH_SENSITIVITY = 0.45;
+      const PINCH_SENSITIVITY = 0.28;
 
       let scale = 1;
       let panX = 0;
@@ -176,11 +176,39 @@ const first = images[0];
       let pinchStartScale = 1;
       let pinchStartPanX = 0;
       let pinchStartPanY = 0;
-      let pinchCenterX = 0;
-      let pinchCenterY = 0;
+      let pinchFocalRelX = 0;
+      let pinchFocalRelY = 0;
 
       const getDistance = (t1: Touch, t2: Touch) =>
         Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+
+      const getFocalOffset = (clientX: number, clientY: number) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          x: clientX - (rect.left + rect.width / 2),
+          y: clientY - (rect.top + rect.height / 2),
+        };
+      };
+
+      const beginPinch = (t0: Touch, t1: Touch) => {
+        pinching = true;
+        tracking = false;
+        locked = null;
+        onGestureStart?.();
+
+        pinchStartDist = Math.max(getDistance(t0, t1), 24);
+        pinchStartScale = scale;
+        pinchStartPanX = panX;
+        pinchStartPanY = panY;
+
+        const centerX = (t0.clientX + t1.clientX) / 2;
+        const centerY = (t0.clientY + t1.clientY) / 2;
+        const focal = getFocalOffset(centerX, centerY);
+        pinchFocalRelX = focal.x;
+        pinchFocalRelY = focal.y;
+
+        applyTransform(false);
+      };
 
       const applyTransform = (animate: boolean) => {
         const img = getActiveImg();
@@ -216,18 +244,7 @@ const first = images[0];
 
       element.addEventListener('touchstart', (event) => {
         if (event.touches.length === 2) {
-          pinching = true;
-          tracking = false;
-          locked = null;
-          onGestureStart?.();
-
-          pinchStartDist = getDistance(event.touches[0], event.touches[1]);
-          pinchStartScale = scale;
-          pinchStartPanX = panX;
-          pinchStartPanY = panY;
-          pinchCenterX = (event.touches[0].clientX + event.touches[1].clientX) / 2;
-          pinchCenterY = (event.touches[0].clientY + event.touches[1].clientY) / 2;
-          applyTransform(false);
+          beginPinch(event.touches[0], event.touches[1]);
           return;
         }
 
@@ -244,13 +261,15 @@ const first = images[0];
       }, { passive: true });
 
       element.addEventListener('touchmove', (event) => {
-        if (event.touches.length === 2 && pinching) {
+        if (event.touches.length === 2) {
+          if (!pinching) {
+            beginPinch(event.touches[0], event.touches[1]);
+          }
+
           event.preventDefault();
           onGestureStart?.();
 
           const dist = getDistance(event.touches[0], event.touches[1]);
-          const centerX = (event.touches[0].clientX + event.touches[1].clientX) / 2;
-          const centerY = (event.touches[0].clientY + event.touches[1].clientY) / 2;
           const pinchRatio = dist / pinchStartDist;
           const dampedRatio = 1 + (pinchRatio - 1) * PINCH_SENSITIVITY;
           const nextScale = Math.min(
@@ -260,8 +279,8 @@ const first = images[0];
           const scaleRatio = nextScale / pinchStartScale;
 
           scale = nextScale;
-          panX = pinchStartPanX + (centerX - pinchCenterX) * (1 - scaleRatio);
-          panY = pinchStartPanY + (centerY - pinchCenterY) * (1 - scaleRatio);
+          panX = pinchFocalRelX * (1 - scaleRatio) + pinchStartPanX * scaleRatio;
+          panY = pinchFocalRelY * (1 - scaleRatio) + pinchStartPanY * scaleRatio;
           applyTransform(false);
           return;
         }
