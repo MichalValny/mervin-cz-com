@@ -1,12 +1,26 @@
 import categoriesJson from '../data/categories.json';
 import instagramJson from '../data/instagram.json';
-import postsJson from '../data/posts.json';
+import postsMetaJson from '../data/posts.json';
 import siteJson from '../data/site.json';
-import type { Category, InstagramFeed, NavItem, Post, SiteData } from './types';
+import type { Category, InstagramFeed, NavItem, Post, PostMeta, SiteData } from './types';
+
+const postContentFiles = import.meta.glob<string>('../content/posts/*.html', {
+  eager: true,
+  query: '?raw',
+  import: 'default',
+});
+
+function loadPostContent(slug: string): string {
+  const path = `../content/posts/${slug}.html`;
+  return postContentFiles[path] ?? '';
+}
 
 export const site = siteJson as SiteData;
 export const categories = categoriesJson as Category[];
-export const posts = postsJson as Post[];
+export const posts: Post[] = (postsMetaJson as PostMeta[]).map((meta) => ({
+  ...meta,
+  content: loadPostContent(meta.slug),
+}));
 export const instagram = instagramJson as InstagramFeed;
 
 export function getPostByPath(path: string): Post | undefined {

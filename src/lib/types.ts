@@ -13,7 +13,7 @@ export interface PostCategory {
   slug: string;
 }
 
-export interface Post {
+export interface PostMeta {
   id: number;
   title: string;
   slug: string;
@@ -24,11 +24,14 @@ export interface Post {
   day: number;
   link: string;
   excerpt: string;
-  content: string;
   galleries: string[];
   featuredImage: string | null;
   categories: PostCategory[];
   categoryIds: number[];
+}
+
+export interface Post extends PostMeta {
+  content: string;
 }
 
 export interface SiteData {

@@ -8,6 +8,7 @@ from pathlib import Path
 
 BASE = "https://www.mervin-cz.com"
 OUTPUT = Path(__file__).resolve().parent.parent / "src" / "data"
+CONTENT_DIR = Path(__file__).resolve().parent.parent / "src" / "content" / "posts"
 
 
 def fetch_json(url: str):
@@ -159,6 +160,14 @@ def main():
     posts = [process_post(p, cat_map) for p in posts_raw]
     posts.sort(key=lambda x: x["date"], reverse=True)
 
+    CONTENT_DIR.mkdir(parents=True, exist_ok=True)
+    posts_meta = []
+    for post in posts:
+        content = post.pop("content", "")
+        html_path = CONTENT_DIR / f"{post['slug']}.html"
+        html_path.write_text(content or "", encoding="utf-8")
+        posts_meta.append(post)
+
     print("Fetching contribute page...")
     contribute = fetch_page("jak-prispivat")
 
@@ -179,7 +188,7 @@ def main():
         json.dump(categories, f, ensure_ascii=False, indent=2)
 
     with open(OUTPUT / "posts.json", "w", encoding="utf-8") as f:
-        json.dump(posts, f, ensure_ascii=False, indent=2)
+        json.dump(posts_meta, f, ensure_ascii=False, indent=2)
 
     if contribute:
         contribute_data = {
@@ -191,9 +200,10 @@ def main():
             json.dump(contribute_data, f, ensure_ascii=False, indent=2)
 
     print(f"Saved to {OUTPUT}")
-    print(f"  posts: {len(posts)}")
+    print(f"  posts: {len(posts_meta)}")
+    print(f"  post HTML files: {CONTENT_DIR}")
     print(f"  categories: {len(categories)}")
-    print(f"  posts with galleries: {sum(1 for p in posts if p['galleries'])}")
+    print(f"  posts with galleries: {sum(1 for p in posts_meta if p['galleries'])}")
 
 
 if __name__ == "__main__":
