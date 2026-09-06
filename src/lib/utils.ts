@@ -85,6 +85,10 @@ function cleanParagraphInner(html: string): string {
     .trim();
 }
 
+function hasDiaryIndent(html: string): boolean {
+  return /^(?:\s|\u00a0|&nbsp;|&#160;){2,}/i.test(html);
+}
+
 function isRiderLine(text: string): boolean {
   const plain = stripHtml(text).replace(/\u00a0/g, ' ').trim();
   if (!/(?:–|—)/.test(plain) || plain.endsWith(':') || plain.length > 120) {
@@ -105,6 +109,25 @@ function isDayHeading(text: string): boolean {
   return /^\d+\.\s*den\b/i.test(stripHtml(text).replace(/\u00a0/g, ' ').trim());
 }
 
+function isExcuseLine(text: string): boolean {
+  const plain = stripHtml(text).trim();
+  const match = plain.match(/^(.+?)-([a-záčďéěíňóřšťúůýž].+)$/);
+  if (!match) {
+    return false;
+  }
+  const name = match[1].trim();
+  return !/^\d/.test(name) && name.length <= 40;
+}
+
+function formatExcuseParagraph(inner: string): string {
+  const cleaned = cleanParagraphInner(inner);
+  const match = cleaned.match(/^(.+?)-([a-záčďéěíňóřšťúůýž].+)$/);
+  if (!match) {
+    return `<p>${cleaned}</p>`;
+  }
+  return `<p class="article-entry"><strong class="article-entry-label">${match[1]}</strong>–${match[2]}</p>`;
+}
+
 function mergeRiderParagraphs(html: string): string {
   return html.replace(
     /<p>([^<]+)<\/p>\s*<p>([^<]+)<\/p>/gi,
@@ -119,14 +142,62 @@ function mergeRiderParagraphs(html: string): string {
   );
 }
 
+function groupConsecutiveRiderLines(html: string): string {
+  const parts = html.split(/(?=<p class=|<ul class=|<p>)/);
+
+  return parts.map((part) => {
+    if (!part.startsWith('<p>')) {
+      return part;
+    }
+
+    const riders: string[] = [];
+    let rest = part;
+
+    while (true) {
+      const match = rest.match(/^<p>([^<]+)<\/p>\s*/);
+      if (!match || !isRiderLine(cleanParagraphInner(match[1]))) {
+        break;
+      }
+      riders.push(cleanParagraphInner(match[1]));
+      rest = rest.slice(match[0].length);
+    }
+
+    if (riders.length === 0) {
+      return part;
+    }
+
+    const list = `<ul class="article-roster">${riders.map((line) => `<li>${line}</li>`).join('')}</ul>`;
+    return `${list}${rest}`;
+  }).join('');
+}
+
 export function formatArticleContent(html: string): string {
   let content = html
     .replace(/<p>(?:\s|&nbsp;)*<\/p>/gi, '')
     .replace(/\n{3,}/g, '\n\n');
 
   content = content.replace(/<p>([^<]*)<\/p>/gi, (_match, inner: string) => {
+    if (hasDiaryIndent(inner)) {
+      const cleaned = cleanParagraphInner(inner);
+      return cleaned ? `<p class="article-diary">${cleaned}</p>` : '';
+    }
+
     const cleaned = cleanParagraphInner(inner);
-    return cleaned ? `<p>${cleaned}</p>` : '';
+    if (!cleaned) {
+      return '';
+    }
+    if (isExcuseLine(cleaned)) {
+      return formatExcuseParagraph(cleaned);
+    }
+    return `<p>${cleaned}</p>`;
+  });
+
+  content = content.replace(/<p>([^<]*<br[^>]*>[^<]*)<\/p>/gi, (_match, inner: string) => {
+    const normalized = inner.replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim();
+    if (/^\d/.test(stripHtml(normalized)) && /komentář/i.test(normalized)) {
+      return `<p class="article-intro">${normalized}</p>`;
+    }
+    return `<p>${normalized}</p>`;
   });
 
   content = mergeRiderParagraphs(content);
@@ -139,10 +210,8 @@ export function formatArticleContent(html: string): string {
     return `<p class="article-section-label"><strong>${cleanLabel}</strong></p>`;
   });
 
-  content = content.replace(
-    /<p>(?:&nbsp;|\s){2,}([^<]+)<\/p>/gi,
-    (_match, inner: string) => `<p class="article-diary">${cleanParagraphInner(inner)}</p>`,
-  );
+  content = groupConsecutiveRiderLines(content);
+  content = content.replace(/<\/ul>\s*<ul class="article-roster">/g, '');
 
   return content.trim();
 }
