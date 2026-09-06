@@ -687,6 +687,7 @@ body.header-static .site-header {
   align-items: center;
   min-height: 480px;
   background: #0a0a0a;
+  touch-action: pan-y pinch-zoom;
 }
 
 .photo-gallery-main-wrap {
@@ -799,6 +800,7 @@ body.header-static .site-header {
   align-items: center;
   justify-items: center;
   background: rgba(0, 0, 0, 0.92);
+  touch-action: pan-y pinch-zoom;
 }
 
 .photo-gallery-lightbox[hidden] {
