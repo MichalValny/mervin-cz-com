@@ -20,8 +20,9 @@ export interface GalleryImage {
 }
 
 export interface LocalGallery {
+  slug?: string;
   title?: string;
-  images: GalleryImage[];
+  images?: GalleryImage[];
 }
 
 export interface PostMeta {

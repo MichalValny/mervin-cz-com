@@ -1,8 +1,41 @@
+import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import categoriesJson from '../data/categories.json';
 import instagramJson from '../data/instagram.json';
 import postsMetaJson from '../data/posts.json';
 import siteJson from '../data/site.json';
-import type { Category, InstagramFeed, NavItem, Post, PostMeta, SiteData } from './types';
+import type { Category, InstagramFeed, LocalGallery, NavItem, Post, PostMeta, SiteData } from './types';
+
+const projectRoot = path.join(fileURLToPath(import.meta.url), '../../..');
+
+interface GalleryManifest {
+  slug: string;
+  title?: string;
+  count: number;
+  images: LocalGallery['images'];
+}
+
+function loadGalleryManifest(slug: string): LocalGallery | null {
+  const manifestPath = path.join(projectRoot, 'public/galleries', slug, 'manifest.json');
+  if (!existsSync(manifestPath)) return null;
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')) as GalleryManifest;
+  return {
+    slug: manifest.slug,
+    title: manifest.title,
+    images: manifest.images ?? [],
+  };
+}
+
+function resolveLocalGalleries(meta: PostMeta): LocalGallery[] | undefined {
+  if (!meta.localGalleries?.length) return undefined;
+  return meta.localGalleries.map((gallery) => {
+    if (gallery.slug && !gallery.images?.length) {
+      return loadGalleryManifest(gallery.slug) ?? { slug: gallery.slug, title: gallery.title, images: [] };
+    }
+    return gallery;
+  });
+}
 
 const postContentFiles = import.meta.glob<string>('../content/posts/*.html', {
   eager: true,
@@ -19,6 +52,7 @@ export const site = siteJson as SiteData;
 export const categories = categoriesJson as Category[];
 export const posts: Post[] = (postsMetaJson as PostMeta[]).map((meta) => ({
   ...meta,
+  localGalleries: resolveLocalGalleries(meta),
   content: loadPostContent(meta.slug),
 }));
 export const instagram = instagramJson as InstagramFeed;

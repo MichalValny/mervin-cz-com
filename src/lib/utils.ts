@@ -75,10 +75,10 @@ export function resolveImageUrl(url: string | null): string | null {
 export function getPostImage(post: {
   featuredImage: string | null;
   galleries: string[];
-  localGalleries?: { images: { src: string }[] }[];
+  localGalleries?: { images?: { src: string }[] }[];
 }): string | null {
   if (post.featuredImage) return post.featuredImage;
-  const local = post.localGalleries?.[0]?.images[0]?.src;
+  const local = post.localGalleries?.[0]?.images?.[0]?.src;
   if (local) return local;
   const gallery = post.galleries[0];
   if (!gallery) return null;
