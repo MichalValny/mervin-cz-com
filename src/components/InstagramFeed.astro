@@ -1,0 +1,51 @@
+---
+import type { InstagramFeed as InstagramFeedData } from '../lib/types';
+
+interface Props {
+  feed: InstagramFeedData;
+}
+
+const { feed } = Astro.props;
+---
+
+{feed.posts.length > 0 && (
+  <section class="instagram-section section-block" aria-labelledby="instagram-heading">
+    <div class="instagram-section-header">
+      <div>
+        <h2 id="instagram-heading" class="instagram-section-title">Z Instagramu</h2>
+        <p class="instagram-section-subtitle">
+          Posledních {feed.posts.length} příspěvků z&nbsp;@{feed.username}
+        </p>
+      </div>
+      <a
+        class="instagram-follow-link"
+        href={feed.profileUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Sledovat @{feed.username}
+      </a>
+    </div>
+
+    <div class="instagram-gallery">
+      {feed.posts.map((post, index) => (
+        <a
+          class="instagram-card"
+          href={post.permalink}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Instagram příspěvek ${index + 1} z ${feed.posts.length}`}
+        >
+          <img src={post.imageUrl} alt="" loading="lazy" width="480" height="480" />
+          <span class="instagram-card-overlay" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+              <circle cx="12" cy="12" r="4"></circle>
+              <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle>
+            </svg>
+          </span>
+        </a>
+      ))}
+    </div>
+  </section>
+)}

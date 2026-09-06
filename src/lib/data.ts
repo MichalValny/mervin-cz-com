@@ -1,11 +1,13 @@
 import categoriesJson from '../data/categories.json';
+import instagramJson from '../data/instagram.json';
 import postsJson from '../data/posts.json';
 import siteJson from '../data/site.json';
-import type { Category, NavItem, Post, SiteData } from './types';
+import type { Category, InstagramFeed, NavItem, Post, SiteData } from './types';
 
 export const site = siteJson as SiteData;
 export const categories = categoriesJson as Category[];
 export const posts = postsJson as Post[];
+export const instagram = instagramJson as InstagramFeed;
 
 export function getPostByPath(path: string): Post | undefined {
   const normalized = path.endsWith('/') ? path : `${path}/`;

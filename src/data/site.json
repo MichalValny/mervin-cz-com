@@ -3,5 +3,7 @@
   "siteUrl": "https://www.mervin-cz.com",
   "logo": "https://www.mervin-cz.com/wp-content/uploads/2020/09/title2-1.png",
   "favicon": "https://www.mervin-cz.com/wp-content/uploads/2020/09/leaf-flag-of-canada-png-4-150x150.png",
-  "instagram": false
+  "instagram": true,
+  "instagramUsername": "mervinczcom",
+  "instagramProfileUrl": "https://www.instagram.com/mervinczcom/"
 }

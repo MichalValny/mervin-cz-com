@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "fetch:instagram": "python3 scripts/fetch-instagram.py",
+    "build": "python3 scripts/fetch-instagram.py && astro build",
     "preview": "astro preview",
     "scrape": "python3 scripts/scrape-content.py",
     "deploy:aws": "bash scripts/deploy-aws.sh"
