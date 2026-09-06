@@ -8,10 +8,15 @@ import { posts } from '../lib/data';
 <BaseLayout>
   <div class="container page-layout">
     <div class="main-content">
-      <section class="featured-grid">
-        {posts.slice(0, 5).map((post, i) => (
-          <PostCard post={post} featured={i === 0} />
-        ))}
+      <section class="section-block featured-section">
+        <div class="section-header">
+          <h2><a href="/jak-prispivat/">Co je nového</a></h2>
+        </div>
+        <div class="featured-grid">
+          {posts.slice(0, 5).map((post, i) => (
+            <PostCard post={post} featured={i === 0} />
+          ))}
+        </div>
       </section>
 
       <section class="section-block">

@@ -1,6 +1,6 @@
 ---
 import type { Post } from '../lib/types';
-import { decodeHtml, formatDateShort, getPostImage } from '../lib/utils';
+import { decodeHtml, formatDate, getExcerpt, getPostImage } from '../lib/utils';
 
 interface Props {
   post: Post;
@@ -10,21 +10,28 @@ interface Props {
 const { post, featured = false } = Astro.props;
 const image = getPostImage(post);
 const category = post.categories[0];
+const excerpt = getExcerpt(post, featured ? 220 : 140);
 ---
 
 <article class:list={['post-card', { 'post-card-featured': featured }]}>
   {image && (
     <a href={post.path} class="post-card-image">
       <img src={image} alt="" loading="lazy" />
+      {category && (
+        <span class="post-card-category post-card-category-overlay">{category.name}</span>
+      )}
     </a>
   )}
   <div class="post-card-body">
-    {category && (
+    {!image && category && (
       <span class="post-card-category">{category.name}</span>
     )}
     <h3 class="post-card-title">
       <a href={post.path}>{decodeHtml(post.title)}</a>
     </h3>
-    <div class="post-card-meta">{formatDateShort(post.date)}</div>
+    <div class="post-card-meta">{formatDate(post.date)}</div>
+    {excerpt && (
+      <p class="post-card-excerpt">{excerpt}</p>
+    )}
   </div>
 </article>
