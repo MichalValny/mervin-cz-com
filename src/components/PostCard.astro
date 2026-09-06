@@ -14,24 +14,21 @@ const excerpt = getExcerpt(post, featured ? 220 : 140);
 ---
 
 <article class:list={['post-card', { 'post-card-featured': featured }]}>
-  {image && (
-    <a href={post.path} class="post-card-image">
+  <a href={post.path} class="post-card-image">
+    {image ? (
       <img src={image} alt="" loading="lazy" />
-      {category && (
-        <span class="post-card-category post-card-category-overlay">{category.name}</span>
-      )}
-    </a>
-  )}
-  <div class="post-card-body">
-    {!image && category && (
-      <span class="post-card-category">{category.name}</span>
+    ) : (
+      <span class="post-card-image-placeholder" aria-hidden="true"></span>
     )}
+    {category && (
+      <span class="post-card-category post-card-category-overlay">{category.name}</span>
+    )}
+  </a>
+  <div class="post-card-body">
     <h3 class="post-card-title">
       <a href={post.path}>{decodeHtml(post.title)}</a>
     </h3>
     <div class="post-card-meta">{formatDate(post.date)}</div>
-    {excerpt && (
-      <p class="post-card-excerpt">{excerpt}</p>
-    )}
+    <p class="post-card-excerpt">{excerpt}</p>
   </div>
 </article>
