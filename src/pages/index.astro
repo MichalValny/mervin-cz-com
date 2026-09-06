@@ -7,6 +7,17 @@ import { instagram, posts } from '../lib/data';
 
 <BaseLayout>
   <div class="container page-layout">
+    <section class="section-block">
+      <div class="section-header">
+        <h2>Nejnovější příspěvky</h2>
+      </div>
+      <div class="post-grid">
+        {posts.slice(0, 8).map((post) => (
+          <PostCard post={post} />
+        ))}
+      </div>
+    </section>
+
     <section class="section-block featured-section">
       <div class="section-header">
         <h2>Co je nového</h2>
@@ -25,17 +36,6 @@ import { instagram, posts } from '../lib/data';
       </div>
       <div class="post-grid">
         {posts.filter((p) => p.categories.some((c) => c.slug === 'zajimavosti')).slice(0, 2).map((post) => (
-          <PostCard post={post} />
-        ))}
-      </div>
-    </section>
-
-    <section class="section-block">
-      <div class="section-header">
-        <h2>Nejnovější příspěvky</h2>
-      </div>
-      <div class="post-grid">
-        {posts.slice(0, 6).map((post) => (
           <PostCard post={post} />
         ))}
       </div>
