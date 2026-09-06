@@ -1,22 +1,23 @@
 :root {
-  --color-bg: #faf9f7;
+  --color-bg: #f3f8fc;
   --color-surface: #ffffff;
-  --color-surface-2: #f3f1ed;
-  --color-text: #1c1917;
-  --color-text-muted: #78716c;
-  --color-accent: #b91c3a;
-  --color-accent-dark: #991b30;
-  --color-maple: #b45309;
-  --color-border: #e7e2da;
-  --color-chrome: #eef6fc;
-  --color-chrome-top: #f5faff;
-  --color-chrome-text: #1e3a52;
-  --color-chrome-text-muted: #5a7285;
-  --color-chrome-border: rgba(30, 58, 82, 0.1);
-  --color-chrome-hover: rgba(255, 255, 255, 0.65);
-  --color-overlay: rgba(28, 25, 23, 0.65);
-  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.04);
-  --shadow-md: 0 8px 24px rgba(28, 25, 23, 0.06);
+  --color-surface-2: #e8f2fa;
+  --color-text: #1a3348;
+  --color-text-muted: #5c748a;
+  --color-accent: #2b6dad;
+  --color-accent-dark: #1e5489;
+  --color-accent-soft: rgba(43, 109, 173, 0.1);
+  --color-maple: #3d7eb5;
+  --color-border: #cdddeb;
+  --color-chrome: #e4eef7;
+  --color-chrome-top: #f7fbfe;
+  --color-chrome-text: #18324a;
+  --color-chrome-text-muted: #587088;
+  --color-chrome-border: rgba(24, 50, 74, 0.1);
+  --color-chrome-hover: rgba(255, 255, 255, 0.75);
+  --color-overlay: rgba(24, 50, 74, 0.58);
+  --shadow-sm: 0 1px 2px rgba(24, 50, 74, 0.05);
+  --shadow-md: 0 8px 28px rgba(24, 50, 74, 0.08);
   --radius-sm: 8px;
   --radius: 10px;
   --radius-lg: 14px;
@@ -261,7 +262,7 @@ body.header-static .site-header {
 .main-nav > li > a.active,
 .main-nav > li > button:hover {
   color: var(--color-accent-dark);
-  background: var(--color-chrome-hover);
+  background: var(--color-accent-soft);
 }
 
 .dropdown {
@@ -1054,7 +1055,7 @@ body.photo-gallery-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(30, 58, 82, 0.35);
+  background: rgba(24, 50, 74, 0.38);
   color: white;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -1136,7 +1137,7 @@ body.photo-gallery-open {
     content: '';
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.35);
+    background: rgba(24, 50, 74, 0.32);
     z-index: 99;
   }
 
@@ -1161,7 +1162,7 @@ body.photo-gallery-open {
     z-index: 101;
     background: var(--color-chrome-top);
     border-bottom: 1px solid var(--color-chrome-border);
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+    box-shadow: 0 12px 32px rgba(24, 50, 74, 0.1);
   }
 
   .nav-toggle {
