@@ -139,7 +139,7 @@ const first = images[0];
       const image = images[index];
       mainImg.src = image.src;
       mainImg.alt = image.alt ?? '';
-      resetImageView(mainImg, mainImg);
+      viewerTouch.resetView(false);
       counter.textContent = `${index + 1} / ${images.length}`;
 
       thumbs.forEach((thumb, ti) => {
@@ -154,7 +154,7 @@ const first = images[0];
       if (!lightbox.hidden) {
         lightboxImg.src = image.src;
         lightboxImg.alt = image.alt ?? '';
-        resetImageView(lightboxViewport, lightboxImg);
+        lightboxTouch.resetView(false);
         lightboxCounter.textContent = `${index + 1} / ${images.length}`;
       }
     }
@@ -163,7 +163,7 @@ const first = images[0];
       lightbox.hidden = true;
       lightbox.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('photo-gallery-open');
-      resetImageView(lightboxViewport, lightboxImg);
+      lightboxTouch.resetView(false);
     }
 
     function bindTouchGallery(
@@ -177,6 +177,7 @@ const first = images[0];
       const MIN_SCALE = 1;
       const MAX_SCALE = 4;
       const PINCH_SENSITIVITY = 0.28;
+      const ZOOM_ACTIVE_THRESHOLD = 1.05;
 
       let scale = 1;
       let panX = 0;
@@ -198,6 +199,8 @@ const first = images[0];
       let pinchFocalRelX = 0;
       let pinchFocalRelY = 0;
 
+      const isZoomed = () => scale >= ZOOM_ACTIVE_THRESHOLD;
+
       const getDistance = (t1: Touch, t2: Touch) =>
         Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
 
@@ -216,6 +219,34 @@ const first = images[0];
           x: clientX - (rect.left + rect.width / 2),
           y: clientY - (rect.top + rect.height / 2),
         };
+      };
+
+      const clampPan = () => {
+        const focal = getFocalTarget();
+        if (!focal || !isZoomed()) return;
+
+        const maxPanX = Math.max(0, (focal.offsetWidth * scale - element.clientWidth) / 2);
+        const maxPanY = Math.max(0, (focal.offsetHeight * scale - element.clientHeight) / 2);
+        panX = Math.min(maxPanX, Math.max(-maxPanX, panX));
+        panY = Math.min(maxPanY, Math.max(-maxPanY, panY));
+      };
+
+      const trySwipeNavigation = (dx: number, dy: number, elapsed: number) => {
+        const velocity = Math.abs(dx) / Math.max(elapsed, 1);
+        const minDistance = isZoomed() ? 28 : 20;
+        const minFlickDistance = isZoomed() ? 18 : 10;
+        const minVelocity = isZoomed() ? 0.32 : 0.25;
+        const shouldSwipe =
+          Math.abs(dx) >= minDistance ||
+          (velocity >= minVelocity && Math.abs(dx) >= minFlickDistance);
+
+        if (!shouldSwipe) return false;
+        if (Math.abs(dy) > Math.abs(dx) * 1.25) return false;
+
+        onGestureStart?.();
+        if (dx < 0) onSwipeLeft();
+        else onSwipeRight();
+        return true;
       };
 
       const beginPinch = (t0: Touch, t1: Touch) => {
@@ -254,6 +285,8 @@ const first = images[0];
           target.style.transform = '';
           return;
         }
+
+        clampPan();
 
         target.dataset.zoomScale = scale.toFixed(2);
         target.classList.add('is-zoomed');
@@ -318,10 +351,11 @@ const first = images[0];
         const dx = event.touches[0].clientX - startX;
         const dy = event.touches[0].clientY - startY;
 
-        if (scale > 1) {
+        if (isZoomed()) {
           event.preventDefault();
           panX = panStartX + dx;
           panY = panStartY + dy;
+          clampPan();
           applyTransform(false);
           return;
         }
@@ -347,8 +381,11 @@ const first = images[0];
       element.addEventListener('touchcancel', () => {
         if (pinching) {
           pinching = false;
-          if (scale < 1.05) resetView(false);
-          else applyTransform(false);
+          if (scale < ZOOM_ACTIVE_THRESHOLD) resetView(false);
+          else {
+            clampPan();
+            applyTransform(false);
+          }
           return;
         }
 
@@ -360,13 +397,14 @@ const first = images[0];
       element.addEventListener('touchend', (event) => {
         if (pinching && event.touches.length < 2) {
           pinching = false;
-          if (scale < 1.05) {
+          if (scale < ZOOM_ACTIVE_THRESHOLD) {
             resetView(false);
           } else {
+            clampPan();
             applyTransform(false);
           }
 
-          if (event.touches.length === 1 && scale > 1) {
+          if (event.touches.length === 1 && isZoomed()) {
             startX = event.touches[0].clientX;
             startY = event.touches[0].clientY;
             panStartX = panX;
@@ -379,38 +417,28 @@ const first = images[0];
         if (!tracking || event.touches.length > 0) return;
         tracking = false;
 
-        if (scale > 1) {
-          locked = null;
-          applyTransform(true);
-          onGestureStart?.();
-          return;
-        }
-
         const touch = event.changedTouches[0];
         const dx = touch.clientX - startX;
         const dy = touch.clientY - startY;
         const elapsed = Math.max(performance.now() - startTime, 1);
-        const velocity = Math.abs(dx) / elapsed;
-        const wasHorizontal = locked === 'x';
+        const wasHorizontal = locked === 'x' || (isZoomed() && Math.abs(dx) >= Math.abs(dy));
         locked = null;
+
+        if (isZoomed()) {
+          if (wasHorizontal && trySwipeNavigation(dx, dy, elapsed)) {
+            return;
+          }
+
+          clampPan();
+          applyTransform(true);
+          return;
+        }
 
         applyTransform(true);
 
         if (!wasHorizontal) return;
 
-        const minDistance = 20;
-        const minFlickDistance = 10;
-        const minVelocity = 0.25;
-        const shouldSwipe =
-          Math.abs(dx) >= minDistance ||
-          (velocity >= minVelocity && Math.abs(dx) >= minFlickDistance);
-
-        if (!shouldSwipe) return;
-        if (Math.abs(dy) > Math.abs(dx) * 1.25) return;
-
-        onGestureStart?.();
-        if (dx < 0) onSwipeLeft();
-        else onSwipeRight();
+        trySwipeNavigation(dx, dy, elapsed);
       }, { passive: true });
 
       return { resetView };
@@ -420,7 +448,7 @@ const first = images[0];
     const viewer = root.querySelector<HTMLElement>('.photo-gallery-viewer')!;
     const markGesture = () => { suppressLightboxOpen = true; };
 
-    bindTouchGallery(
+    const viewerTouch = bindTouchGallery(
       viewer,
       () => mainImg,
       () => mainImg,
@@ -429,7 +457,7 @@ const first = images[0];
       markGesture,
     );
 
-    bindTouchGallery(
+    const lightboxTouch = bindTouchGallery(
       lightboxStage,
       () => lightboxViewport,
       () => lightboxImg,
@@ -445,7 +473,7 @@ const first = images[0];
       document.body.classList.add('photo-gallery-open');
       lightboxImg.src = images[index].src;
       lightboxImg.alt = images[index].alt ?? '';
-      resetImageView(lightboxViewport, lightboxImg);
+      lightboxTouch.resetView(false);
       lightboxCounter.textContent = `${index + 1} / ${images.length}`;
     }
 
