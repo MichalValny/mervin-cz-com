@@ -1,9 +1,7 @@
 ---
-import { site, mainNav, posts } from '../lib/data';
-import { decodeHtml } from '../lib/utils';
+import { site, mainNav } from '../lib/data';
 
 const currentPath = Astro.url.pathname;
-const latestPosts = posts.slice(0, 5);
 const today = new Intl.DateTimeFormat('cs-CZ', {
   weekday: 'long',
   day: 'numeric',
@@ -76,17 +74,6 @@ const today = new Intl.DateTimeFormat('cs-CZ', {
         </svg>
       </button>
     </form>
-  </div>
-
-  <div class="ticker-bar">
-    <div class="container ticker-inner">
-      <span class="ticker-label">Poslední příspěvky</span>
-      <div class="ticker-track" aria-hidden="true">
-        {[...latestPosts, ...latestPosts].map((post) => (
-          <a href={post.path}>{decodeHtml(post.title)}</a>
-        ))}
-      </div>
-    </div>
   </div>
 </header>
 

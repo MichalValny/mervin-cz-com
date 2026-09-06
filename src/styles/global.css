@@ -316,52 +316,6 @@ body.header-static .site-header {
   background: var(--color-accent-dark);
 }
 
-/* Ticker */
-.ticker-bar {
-  background: var(--color-accent);
-  color: white;
-  overflow: hidden;
-  padding: 0.5rem 0;
-}
-
-.ticker-inner {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.ticker-label {
-  flex-shrink: 0;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.25rem 0.75rem;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 999px;
-}
-
-.ticker-track {
-  display: flex;
-  gap: 2rem;
-  animation: ticker 40s linear infinite;
-  white-space: nowrap;
-}
-
-.ticker-track a {
-  color: white;
-  font-size: 0.9rem;
-}
-
-.ticker-track a:hover {
-  text-decoration: underline;
-}
-
-@keyframes ticker {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
 /* Layout */
 .page-layout {
   display: grid;
@@ -967,14 +921,6 @@ body.header-static .site-header {
   .search-form button {
     padding: 0.55rem 0.85rem;
     min-width: 44px;
-  }
-
-  .ticker-label {
-    display: none;
-  }
-
-  .ticker-track a {
-    font-size: 0.82rem;
   }
 
   .section-block {
