@@ -77,7 +77,11 @@ const first = images[0];
       <polyline points="15 18 9 12 15 6"></polyline>
     </svg>
   </button>
-  <img class="photo-gallery-lightbox-img" src="" alt="" />
+  <div class="photo-gallery-lightbox-stage">
+    <div class="photo-gallery-lightbox-viewport">
+      <img class="photo-gallery-lightbox-img" src="" alt="" />
+    </div>
+  </div>
   <button type="button" class="photo-gallery-lightbox-nav photo-gallery-lightbox-nav--next" aria-label="Další fotografie">
     <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
       <polyline points="9 18 15 12 9 6"></polyline>
@@ -102,18 +106,29 @@ const first = images[0];
     const mainWrap = root.querySelector<HTMLButtonElement>('.photo-gallery-main-wrap')!;
 
     const lightbox = document.querySelector<HTMLElement>('.photo-gallery-lightbox')!;
+    const lightboxStage = lightbox.querySelector<HTMLElement>('.photo-gallery-lightbox-stage')!;
+    const lightboxViewport = lightbox.querySelector<HTMLElement>('.photo-gallery-lightbox-viewport')!;
     const lightboxImg = lightbox.querySelector<HTMLImageElement>('.photo-gallery-lightbox-img')!;
     const lightboxCounter = lightbox.querySelector<HTMLElement>('.photo-gallery-lightbox-counter')!;
     const lightboxClose = lightbox.querySelector<HTMLButtonElement>('.photo-gallery-lightbox-close')!;
     const lightboxPrev = lightbox.querySelector<HTMLButtonElement>('.photo-gallery-lightbox-nav--prev')!;
     const lightboxNext = lightbox.querySelector<HTMLButtonElement>('.photo-gallery-lightbox-nav--next')!;
 
-    function resetImageView(img: HTMLImageElement | null, animate = true) {
-      if (!img) return;
-      img.dataset.zoomScale = '1';
-      img.classList.remove('is-dragging', 'is-zoomed');
-      img.style.transform = '';
-      img.style.transition = animate ? '' : 'none';
+    function resetImageView(
+      target: HTMLElement | null,
+      img: HTMLImageElement | null,
+      animate = true,
+    ) {
+      if (target) {
+        target.dataset.zoomScale = '1';
+        target.classList.remove('is-dragging', 'is-zoomed');
+        target.style.transform = '';
+        target.style.transition = animate ? '' : 'none';
+      }
+      if (img) {
+        img.dataset.zoomScale = '1';
+        img.classList.remove('is-dragging', 'is-zoomed');
+      }
     }
 
     function show(i: number) {
@@ -121,7 +136,7 @@ const first = images[0];
       const image = images[index];
       mainImg.src = image.src;
       mainImg.alt = image.alt ?? '';
-      resetImageView(mainImg);
+      resetImageView(mainImg, mainImg);
       counter.textContent = `${index + 1} / ${images.length}`;
 
       thumbs.forEach((thumb, ti) => {
@@ -136,7 +151,7 @@ const first = images[0];
       if (!lightbox.hidden) {
         lightboxImg.src = image.src;
         lightboxImg.alt = image.alt ?? '';
-        resetImageView(lightboxImg);
+        resetImageView(lightboxViewport, lightboxImg);
         lightboxCounter.textContent = `${index + 1} / ${images.length}`;
       }
     }
@@ -145,12 +160,13 @@ const first = images[0];
       lightbox.hidden = true;
       lightbox.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('photo-gallery-open');
-      resetImageView(lightboxImg);
+      resetImageView(lightboxViewport, lightboxImg);
     }
 
     function bindTouchGallery(
       element: HTMLElement,
-      getActiveImg: () => HTMLImageElement | null,
+      getTransformTarget: () => HTMLElement | null,
+      getFocalTarget: () => HTMLElement | null,
       onSwipeLeft: () => void,
       onSwipeRight: () => void,
       onGestureStart?: () => void,
@@ -183,7 +199,16 @@ const first = images[0];
         Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
 
       const getFocalOffset = (clientX: number, clientY: number) => {
-        const rect = element.getBoundingClientRect();
+        const focalTarget = getFocalTarget() ?? getTransformTarget();
+        if (!focalTarget) {
+          const rect = element.getBoundingClientRect();
+          return {
+            x: clientX - (rect.left + rect.width / 2),
+            y: clientY - (rect.top + rect.height / 2),
+          };
+        }
+
+        const rect = focalTarget.getBoundingClientRect();
         return {
           x: clientX - (rect.left + rect.width / 2),
           y: clientY - (rect.top + rect.height / 2),
@@ -211,25 +236,25 @@ const first = images[0];
       };
 
       const applyTransform = (animate: boolean) => {
-        const img = getActiveImg();
-        if (!img) return;
+        const target = getTransformTarget();
+        if (!target) return;
 
-        img.classList.toggle('is-dragging', !animate);
-        img.style.transition = animate ? '' : 'none';
+        target.classList.toggle('is-dragging', !animate);
+        target.style.transition = animate ? '' : 'none';
 
         if (scale <= 1.01 && Math.abs(panX) < 1 && Math.abs(panY) < 1) {
           scale = 1;
           panX = 0;
           panY = 0;
-          img.dataset.zoomScale = '1';
-          img.classList.remove('is-zoomed');
-          img.style.transform = '';
+          target.dataset.zoomScale = '1';
+          target.classList.remove('is-zoomed');
+          target.style.transform = '';
           return;
         }
 
-        img.dataset.zoomScale = scale.toFixed(2);
-        img.classList.add('is-zoomed');
-        img.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${scale})`;
+        target.dataset.zoomScale = scale.toFixed(2);
+        target.classList.add('is-zoomed');
+        target.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${scale})`;
       };
 
       const resetView = (animate = true) => {
@@ -239,7 +264,7 @@ const first = images[0];
         pinching = false;
         tracking = false;
         locked = null;
-        resetImageView(getActiveImg(), animate);
+        resetImageView(getTransformTarget(), getFocalTarget() as HTMLImageElement | null, animate);
       };
 
       element.addEventListener('touchstart', (event) => {
@@ -305,11 +330,11 @@ const first = images[0];
 
         if (locked !== 'x') return;
 
-        const img = getActiveImg();
-        if (!img) return;
+        const target = getTransformTarget();
+        if (!target) return;
 
-        img.classList.add('is-dragging');
-        img.style.transform = `translate3d(${dx}px, 0, 0)`;
+        target.classList.add('is-dragging');
+        target.style.transform = `translate3d(${dx}px, 0, 0)`;
 
         if (Math.abs(dx) > 8) {
           event.preventDefault();
@@ -319,21 +344,33 @@ const first = images[0];
       element.addEventListener('touchcancel', () => {
         if (pinching) {
           pinching = false;
-          if (scale < 1.05) resetView(true);
-          else applyTransform(true);
+          if (scale < 1.05) resetView(false);
+          else applyTransform(false);
           return;
         }
 
         tracking = false;
         locked = null;
-        applyTransform(true);
+        applyTransform(false);
       }, { passive: true });
 
       element.addEventListener('touchend', (event) => {
         if (pinching && event.touches.length < 2) {
           pinching = false;
-          if (scale < 1.05) resetView(true);
-          else applyTransform(true);
+          if (scale < 1.05) {
+            resetView(false);
+          } else {
+            applyTransform(false);
+          }
+
+          if (event.touches.length === 1 && scale > 1) {
+            startX = event.touches[0].clientX;
+            startY = event.touches[0].clientY;
+            panStartX = panX;
+            panStartY = panY;
+            tracking = true;
+            locked = null;
+          }
         }
 
         if (!tracking || event.touches.length > 0) return;
@@ -383,13 +420,15 @@ const first = images[0];
     bindTouchGallery(
       viewer,
       () => mainImg,
+      () => mainImg,
       () => show(index + 1),
       () => show(index - 1),
       markGesture,
     );
 
     bindTouchGallery(
-      lightbox,
+      lightboxStage,
+      () => lightboxViewport,
       () => lightboxImg,
       () => show(index + 1),
       () => show(index - 1),
@@ -403,7 +442,7 @@ const first = images[0];
       document.body.classList.add('photo-gallery-open');
       lightboxImg.src = images[index].src;
       lightboxImg.alt = images[index].alt ?? '';
-      resetImageView(lightboxImg);
+      resetImageView(lightboxViewport, lightboxImg);
       lightboxCounter.textContent = `${index + 1} / ${images.length}`;
     }
 
