@@ -95,6 +95,14 @@ const currentPath = Astro.url.pathname;
     link.addEventListener('click', closeNav);
   });
 
+  document.addEventListener('click', (event) => {
+    if (!nav?.classList.contains('open')) return;
+    const target = event.target;
+    if (!(target instanceof Node)) return;
+    if (header?.contains(target)) return;
+    closeNav();
+  });
+
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closeNav();
   });

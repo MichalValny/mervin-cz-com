@@ -1132,20 +1132,36 @@ body.photo-gallery-open {
     padding: 1.5rem 0 3rem;
   }
 
+  .site-header.nav-open::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.35);
+    z-index: 99;
+  }
+
   .header-main {
-    display: grid;
-    grid-template-areas:
-      "bar"
-      "nav";
+    position: relative;
+    z-index: 101;
+    display: block;
     padding: 0.65rem 0;
   }
 
   .header-bar {
-    grid-area: bar;
+    position: relative;
+    z-index: 102;
   }
 
   .header-nav {
-    grid-area: nav;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    z-index: 101;
+    background: var(--color-chrome-top);
+    border-bottom: 1px solid var(--color-chrome-border);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
   }
 
   .nav-toggle {
@@ -1159,7 +1175,7 @@ body.photo-gallery-open {
     gap: 0.1rem;
     padding: 0.35rem 0 0.15rem;
     border-top: 1px solid var(--color-chrome-border);
-    max-height: min(70vh, 520px);
+    max-height: min(calc(100dvh - 5.5rem), 520px);
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
