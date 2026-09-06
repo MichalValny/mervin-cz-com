@@ -105,27 +105,31 @@ function isDayHeading(text: string): boolean {
   return /^\d+\.\s*den\b/i.test(stripHtml(text).replace(/\u00a0/g, ' ').trim());
 }
 
+function mergeRiderParagraphs(html: string): string {
+  return html.replace(
+    /<p>([^<]+)<\/p>\s*<p>([^<]+)<\/p>/gi,
+    (match, label: string, body: string) => {
+      const cleanLabel = cleanParagraphInner(label);
+      const cleanBody = cleanParagraphInner(body);
+      if (!isRiderLine(cleanLabel) || !startsWithLowercase(cleanBody)) {
+        return match;
+      }
+      return `<p class="article-entry"><strong class="article-entry-label">${cleanLabel}</strong> ${cleanBody}</p>`;
+    },
+  );
+}
+
 export function formatArticleContent(html: string): string {
   let content = html
     .replace(/<p>(?:\s|&nbsp;)*<\/p>/gi, '')
     .replace(/\n{3,}/g, '\n\n');
 
-  content = content.replace(/<p>((?:&nbsp;|\s|[^<])*)<\/p>/gi, (_match, inner: string) => {
+  content = content.replace(/<p>([^<]*)<\/p>/gi, (_match, inner: string) => {
     const cleaned = cleanParagraphInner(inner);
     return cleaned ? `<p>${cleaned}</p>` : '';
   });
 
-  content = content.replace(
-    /<p>([^<]*(?:&nbsp;|\s)*(?:–|—|&#8211;|&#8212;|-)[^<]*)<\/p>\s*<p>((?:&nbsp;|\s)*[a-záčďéěíňóřšťúůýž][^<]*)<\/p>/gi,
-    (_match, label: string, body: string) => {
-      const cleanLabel = cleanParagraphInner(label);
-      const cleanBody = cleanParagraphInner(body);
-      if (!isRiderLine(cleanLabel) || !startsWithLowercase(cleanBody)) {
-        return _match;
-      }
-      return `<p class="article-entry"><strong class="article-entry-label">${cleanLabel}</strong> ${cleanBody}</p>`;
-    },
-  );
+  content = mergeRiderParagraphs(content);
 
   content = content.replace(/<p><strong>([^<]+)<\/strong><\/p>/gi, (_match, label: string) => {
     const cleanLabel = cleanParagraphInner(label);
@@ -136,23 +140,9 @@ export function formatArticleContent(html: string): string {
   });
 
   content = content.replace(
-    /<p>((?:&nbsp;|\s){2,}[^<]+)<\/p>/gi,
+    /<p>(?:&nbsp;|\s){2,}([^<]+)<\/p>/gi,
     (_match, inner: string) => `<p class="article-diary">${cleanParagraphInner(inner)}</p>`,
   );
-
-  const rosterPattern = /(?:<p>([^<]*(?:&nbsp;|\s)*(?:–|—|&#8211;|&#8212;|-)[^<]*)<\/p>\s*)+/gi;
-  content = content.replace(rosterPattern, (block) => {
-    const items = [...block.matchAll(/<p>([^<]*)<\/p>/gi)]
-      .map((match) => cleanParagraphInner(match[1]))
-      .filter(Boolean);
-
-    if (items.length < 2 || !items.every(isRiderLine)) {
-      return block;
-    }
-
-    const listItems = items.map((item) => `<li>${item}</li>`).join('');
-    return `<ul class="article-roster">${listItems}</ul>`;
-  });
 
   return content.trim();
 }
