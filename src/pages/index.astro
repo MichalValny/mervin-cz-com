@@ -18,17 +18,6 @@ import { instagram, posts } from '../lib/data';
       </div>
     </section>
 
-    <section class="section-block featured-section">
-      <div class="section-header">
-        <h2>Co je nového</h2>
-      </div>
-      <div class="featured-grid">
-        {posts.slice(0, 5).map((post, i) => (
-          <PostCard post={post} featured={i === 0} />
-        ))}
-      </div>
-    </section>
-
     <section class="section-block">
       <div class="section-header">
         <h2><a href="/kategorie/zajimavosti/">Zajímavosti</a></h2>
