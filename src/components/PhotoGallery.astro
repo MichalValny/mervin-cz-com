@@ -146,12 +146,69 @@ const first = images[0];
       document.body.classList.remove('photo-gallery-open');
     }
 
+    function bindSwipe(
+      element: HTMLElement,
+      onSwipeLeft: () => void,
+      onSwipeRight: () => void,
+      onSwipe?: () => void,
+    ) {
+      let startX = 0;
+      let startY = 0;
+      let tracking = false;
+
+      element.addEventListener('touchstart', (event) => {
+        if (event.touches.length !== 1) return;
+        startX = event.touches[0].clientX;
+        startY = event.touches[0].clientY;
+        tracking = true;
+      }, { passive: true });
+
+      element.addEventListener('touchend', (event) => {
+        if (!tracking) return;
+        tracking = false;
+
+        const touch = event.changedTouches[0];
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+        const minSwipe = 40;
+
+        if (Math.abs(dx) < minSwipe) return;
+        if (Math.abs(dy) > Math.abs(dx)) return;
+
+        onSwipe?.();
+        if (dx < 0) onSwipeLeft();
+        else onSwipeRight();
+      }, { passive: true });
+    }
+
+    let suppressLightboxOpen = false;
+    const viewer = root.querySelector<HTMLElement>('.photo-gallery-viewer')!;
+
+    bindSwipe(
+      viewer,
+      () => show(index + 1),
+      () => show(index - 1),
+      () => { suppressLightboxOpen = true; },
+    );
+
+    bindSwipe(
+      lightbox,
+      () => show(index + 1),
+      () => show(index - 1),
+    );
+
     prevBtn.addEventListener('click', () => show(index - 1));
     nextBtn.addEventListener('click', () => show(index + 1));
     thumbs.forEach((thumb) => {
       thumb.addEventListener('click', () => show(Number(thumb.dataset.index)));
     });
-    mainWrap.addEventListener('click', openLightbox);
+    mainWrap.addEventListener('click', () => {
+      if (suppressLightboxOpen) {
+        suppressLightboxOpen = false;
+        return;
+      }
+      openLightbox();
+    });
     lightboxClose.addEventListener('click', closeLightbox);
     lightboxPrev.addEventListener('click', () => show(index - 1));
     lightboxNext.addEventListener('click', () => show(index + 1));
