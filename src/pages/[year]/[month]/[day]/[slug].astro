@@ -28,14 +28,10 @@ const image = getPostImage(post);
     <article class="main-content">
       <nav class="breadcrumb" aria-label="Drobečková navigace">
         <a href="/">Domů</a>
-        <span>/</span>
-        <span>{post.year}</span>
-        <span>/</span>
-        <span>{String(post.month).padStart(2, '0')}</span>
-        <span>/</span>
-        <span>{String(post.day).padStart(2, '0')}</span>
-        <span>/</span>
-        <span>{title}</span>
+        <span class="breadcrumb-sep" aria-hidden="true">/</span>
+        <span class="breadcrumb-date">{post.year}/{String(post.month).padStart(2, '0')}/{String(post.day).padStart(2, '0')}</span>
+        <span class="breadcrumb-sep" aria-hidden="true">/</span>
+        <span class="breadcrumb-current">{title}</span>
       </nav>
 
       <header class="article-header">
