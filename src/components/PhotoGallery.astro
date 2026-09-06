@@ -157,6 +157,7 @@ const first = images[0];
     ) {
       const MIN_SCALE = 1;
       const MAX_SCALE = 4;
+      const PINCH_SENSITIVITY = 0.45;
 
       let scale = 1;
       let panX = 0;
@@ -250,9 +251,11 @@ const first = images[0];
           const dist = getDistance(event.touches[0], event.touches[1]);
           const centerX = (event.touches[0].clientX + event.touches[1].clientX) / 2;
           const centerY = (event.touches[0].clientY + event.touches[1].clientY) / 2;
+          const pinchRatio = dist / pinchStartDist;
+          const dampedRatio = 1 + (pinchRatio - 1) * PINCH_SENSITIVITY;
           const nextScale = Math.min(
             MAX_SCALE,
-            Math.max(MIN_SCALE, pinchStartScale * (dist / pinchStartDist)),
+            Math.max(MIN_SCALE, pinchStartScale * dampedRatio),
           );
           const scaleRatio = nextScale / pinchStartScale;
 
