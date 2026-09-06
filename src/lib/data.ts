@@ -47,14 +47,16 @@ export function getArchives(): { key: string; label: string; count: number }[] {
 export const mainNav: NavItem[] = [
   { label: 'Motorky', href: '/kategorie/motorky/' },
   { label: 'Kola', href: '/kategorie/kola/' },
-  { label: 'Zajímavosti', href: '/kategorie/zajimavosti/' },
   {
     label: 'Ostatní',
     href: '/kategorie/ostatni/',
-    children: getChildCategories(26).map((c) => ({
-      label: c.name,
-      href: `/kategorie/${c.slug}/`,
-    })),
+    children: [
+      { label: 'Zajímavosti', href: '/kategorie/zajimavosti/' },
+      ...getChildCategories(26).map((c) => ({
+        label: c.name,
+        href: `/kategorie/${c.slug}/`,
+      })),
+    ],
   },
 ];
 
