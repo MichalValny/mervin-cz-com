@@ -80,8 +80,8 @@ export function getExcerpt(post: { excerpt: string; content: string }, maxLength
 
 function cleanParagraphInner(html: string): string {
   return html
-    .replace(/^(?:&nbsp;|\s)+/gi, '')
-    .replace(/(?:&nbsp;|\s)+$/gi, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
