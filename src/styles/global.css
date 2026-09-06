@@ -572,6 +572,14 @@ body.header-static .site-header {
   color: var(--color-text-muted);
 }
 
+.article-content .article-photo-credit {
+  margin-top: 2rem;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
 .article-content .article-diary {
   margin-bottom: 1.1rem;
   padding-left: 1.25rem;

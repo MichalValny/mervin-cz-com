@@ -109,6 +109,10 @@ function isDayHeading(text: string): boolean {
   return /^\d+\.\s*den\b/i.test(stripHtml(text).replace(/\u00a0/g, ' ').trim());
 }
 
+function isTripDateLine(text: string): boolean {
+  return /^\d{1,2}-\d{1,2}\.\s*\d{0,2}\.?\s*\d{4}$/.test(text.replace(/\u00a0/g, ' ').trim());
+}
+
 function isExcuseLine(text: string): boolean {
   const plain = stripHtml(text).trim();
   const match = plain.match(/^(.+?)-([a-záčďéěíňóřšťúůýž].+)$/);
@@ -171,10 +175,51 @@ function groupConsecutiveRiderLines(html: string): string {
   }).join('');
 }
 
+function markDiaryBetweenDayHeadings(html: string): string {
+  const sections = html.split(/(?=<p class="article-day-heading")/);
+
+  return sections.map((section, index) => {
+    if (index === 0) {
+      return section;
+    }
+
+    return section.replace(/<p>([^<]+)<\/p>/g, (_match, inner: string) => {
+      const cleaned = cleanParagraphInner(inner);
+      return cleaned ? `<p class="article-diary">${cleaned}</p>` : '';
+    });
+  }).join('');
+}
+
+function stripEmptyStrongIndent(html: string): string {
+  return html.replace(
+    /<p>\s*<strong>(?:&nbsp;|&#160;|\u00a0|\s)*<\/strong>\s*([^<]+)<\/p>/gi,
+    (_match, inner: string) => {
+      const cleaned = cleanParagraphInner(inner);
+      return cleaned ? `<p class="article-diary">${cleaned}</p>` : '';
+    },
+  );
+}
+
+function formatPhotoCredit(html: string): string {
+  return html
+    .replace(
+      /<p>\s*(?:<br\s*\/?>\s*)*<em>Fota\s+([^<]+)<\/em>\s*<\/p>/gi,
+      (_match, author: string) =>
+        `<p class="article-photo-credit"><em>Fota ${cleanParagraphInner(author)}</em></p>`,
+    )
+    .replace(
+      /<p>\s*<em>Fota\s+([^<]+)<\/em>\s*<\/p>/gi,
+      (_match, author: string) =>
+        `<p class="article-photo-credit"><em>Fota ${cleanParagraphInner(author)}</em></p>`,
+    );
+}
+
 export function formatArticleContent(html: string): string {
   let content = html
     .replace(/<p>(?:\s|&nbsp;)*<\/p>/gi, '')
     .replace(/\n{3,}/g, '\n\n');
+
+  content = stripEmptyStrongIndent(content);
 
   content = content.replace(/<p>([^<]*)<\/p>/gi, (_match, inner: string) => {
     if (hasDiaryIndent(inner)) {
@@ -186,6 +231,9 @@ export function formatArticleContent(html: string): string {
     if (!cleaned) {
       return '';
     }
+    if (isTripDateLine(cleaned)) {
+      return `<p class="article-intro">${cleaned}</p>`;
+    }
     if (isExcuseLine(cleaned)) {
       return formatExcuseParagraph(cleaned);
     }
@@ -194,7 +242,8 @@ export function formatArticleContent(html: string): string {
 
   content = content.replace(/<p>([^<]*<br[^>]*>[^<]*)<\/p>/gi, (_match, inner: string) => {
     const normalized = inner.replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim();
-    if (/^\d/.test(stripHtml(normalized)) && /komentář/i.test(normalized)) {
+    const plain = stripHtml(normalized);
+    if (isTripDateLine(plain) || (/^\d/.test(plain) && /komentář/i.test(normalized))) {
       return `<p class="article-intro">${normalized}</p>`;
     }
     return `<p>${normalized}</p>`;
@@ -212,6 +261,8 @@ export function formatArticleContent(html: string): string {
 
   content = groupConsecutiveRiderLines(content);
   content = content.replace(/<\/ul>\s*<ul class="article-roster">/g, '');
+  content = markDiaryBetweenDayHeadings(content);
+  content = formatPhotoCredit(content);
 
   return content.trim();
 }
