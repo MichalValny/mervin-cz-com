@@ -12,7 +12,7 @@ import { instagram, posts } from '../lib/data';
         <h2>Nejnovější příspěvky</h2>
       </div>
       <div class="post-grid">
-        {posts.slice(0, 8).map((post) => (
+        {posts.slice(0, 12).map((post) => (
           <PostCard post={post} />
         ))}
       </div>
