@@ -835,23 +835,40 @@ body.photo-gallery-open {
 }
 
 .photo-gallery-lightbox-img {
-  grid-column: 1 / -1;
-  grid-row: 1;
+  display: block;
   max-width: min(96vw, 1400px);
   max-height: 88vh;
+  width: auto;
+  height: auto;
   object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.photo-gallery-lightbox-stage {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.photo-gallery-lightbox-viewport {
   transform-origin: center center;
   transition: transform 0.18s ease-out;
   will-change: transform;
 }
 
-.photo-gallery-lightbox-img.is-dragging {
+.photo-gallery-lightbox-viewport.is-dragging {
   transition: none;
 }
 
-.photo-gallery-lightbox-img.is-zoomed {
-  max-width: none;
-  max-height: none;
+.photo-gallery-lightbox-viewport.is-zoomed {
   cursor: grab;
 }
 
