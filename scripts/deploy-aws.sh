@@ -147,8 +147,68 @@ EOF
   aws s3api put-bucket-policy --bucket "$S3_BUCKET" --policy "$policy"
 }
 
+s3_origin_domain() {
+  if [[ "$AWS_REGION" == "us-east-1" ]]; then
+    echo "${S3_BUCKET}.s3.amazonaws.com"
+  else
+    echo "${S3_BUCKET}.s3.${AWS_REGION}.amazonaws.com"
+  fi
+}
+
+ensure_index_rewrite_function() {
+  local function_name="mervin-cz-com-index-rewrite"
+  local etag
+  local existing
+  existing="$(aws cloudfront list-functions \
+    --query "FunctionList.Items[?Name=='${function_name}'].Name | [0]" \
+    --output text 2>/dev/null | sed '/^None$/d')"
+
+  if [[ -z "$existing" ]]; then
+    etag="$(aws cloudfront create-function \
+      --name "$function_name" \
+      --function-config '{"Comment":"Append index.html for directory URLs","Runtime":"cloudfront-js-2.0"}' \
+      --function-code "fileb://${ROOT_DIR}/scripts/cloudfront-index-rewrite.js" \
+      --query 'ETag' \
+      --output text)"
+  else
+    etag="$(aws cloudfront describe-function --name "$function_name" --query 'ETag' --output text)"
+    etag="$(aws cloudfront update-function \
+      --name "$function_name" \
+      --if-match "$etag" \
+      --function-config '{"Comment":"Append index.html for directory URLs","Runtime":"cloudfront-js-2.0"}' \
+      --function-code "fileb://${ROOT_DIR}/scripts/cloudfront-index-rewrite.js" \
+      --query 'ETag' \
+      --output text)"
+  fi
+
+  aws cloudfront publish-function --name "$function_name" --if-match "$etag" >/dev/null
+  echo "arn:aws:cloudfront::${ACCOUNT_ID}:function/${function_name}"
+}
+
+attach_index_rewrite_function() {
+  local distribution_id="$1"
+  local function_arn="$2"
+  local config_file="${STATE_DIR}/distribution-config.json"
+  local etag
+
+  aws cloudfront get-distribution-config --id "$distribution_id" --output json > "$config_file"
+  etag="$(jq -r '.ETag' "$config_file")"
+  jq --arg arn "$function_arn" \
+    '.DistributionConfig.DefaultCacheBehavior.FunctionAssociations = {
+      "Quantity": 1,
+      "Items": [{ "FunctionARN": $arn, "EventType": "viewer-request" }]
+    } | .DistributionConfig' \
+    "$config_file" > "${config_file}.updated"
+
+  aws cloudfront update-distribution \
+    --id "$distribution_id" \
+    --if-match "$etag" \
+    --distribution-config "file://${config_file}.updated" >/dev/null
+}
+
 create_distribution() {
   local oac_id="$1"
+  local function_arn="$2"
   local aliases_json="[]"
   if [[ -n "${CLOUDFRONT_ALIASES:-}" ]]; then
     aliases_json="$(printf '%s' "$CLOUDFRONT_ALIASES" | awk -F, '{printf "["; for (i=1; i<=NF; i++) {gsub(/^ +| +$/, "", $i); printf "%s\"%s\"", (i>1?",":""), $i}; printf "]"}')"
@@ -159,13 +219,16 @@ create_distribution() {
     viewer_cert="{\"ACMCertificateArn\": \"${ACM_CERTIFICATE_ARN}\", \"SSLSupportMethod\": \"sni-only\", \"MinimumProtocolVersion\": \"TLSv1.2_2021\"}"
   fi
 
+  local origin_domain
+  origin_domain="$(s3_origin_domain)"
+
   aws cloudfront create-distribution \
     --distribution-config "$(jq -n \
       --arg comment "$CLOUDFRONT_COMMENT" \
       --arg origin_id "$ORIGIN_ID" \
-      --arg bucket "$S3_BUCKET" \
-      --arg region "$AWS_REGION" \
+      --arg origin_domain "$origin_domain" \
       --arg oac_id "$oac_id" \
+      --arg function_arn "$function_arn" \
       --argjson aliases "$aliases_json" \
       --argjson viewer_cert "$viewer_cert" \
       '{
@@ -178,7 +241,7 @@ create_distribution() {
           Quantity: 1,
           Items: [{
             Id: $origin_id,
-            DomainName: ($bucket + ".s3." + $region + ".amazonaws.com"),
+            DomainName: $origin_domain,
             OriginAccessControlId: $oac_id,
             S3OriginConfig: { OriginAccessIdentity: "" }
           }]
@@ -192,7 +255,11 @@ create_distribution() {
             CachedMethods: { Quantity: 2, Items: ["GET", "HEAD"] }
           },
           Compress: true,
-          CachePolicyId: "658327ea-f89d-4fab-a63d-7e88639e58f6"
+          CachePolicyId: "658327ea-f89d-4fab-a63d-7e88639e58f6",
+          FunctionAssociations: {
+            Quantity: 1,
+            Items: [{ FunctionARN: $function_arn, EventType: "viewer-request" }]
+          }
         },
         Aliases: {
           Quantity: ($aliases | length),
@@ -205,17 +272,20 @@ create_distribution() {
 }
 
 OAC_ID="$(ensure_oac)"
+FUNCTION_ARN="$(ensure_index_rewrite_function)"
 DISTRIBUTION_ID="$(find_distribution_id)"
 
 if [[ -z "$DISTRIBUTION_ID" ]]; then
   echo "Creating new CloudFront distribution"
-  CREATE_RESULT="$(create_distribution "$OAC_ID")"
+  CREATE_RESULT="$(create_distribution "$OAC_ID" "$FUNCTION_ARN")"
   DISTRIBUTION_ID="$(echo "$CREATE_RESULT" | jq -r '.Id')"
   DOMAIN_NAME="$(echo "$CREATE_RESULT" | jq -r '.DomainName')"
   echo "$CREATE_RESULT" > "$STATE_FILE"
 else
   echo "Using existing CloudFront distribution ${DISTRIBUTION_ID}"
   DOMAIN_NAME="$(aws cloudfront get-distribution --id "$DISTRIBUTION_ID" --query 'Distribution.DomainName' --output text)"
+  echo "==> Ensuring index.html rewrite function is attached"
+  attach_index_rewrite_function "$DISTRIBUTION_ID" "$FUNCTION_ARN"
   jq -n \
     --arg distributionId "$DISTRIBUTION_ID" \
     --arg domainName "$DOMAIN_NAME" \
