@@ -113,6 +113,8 @@ const first = images[0];
       const image = images[index];
       mainImg.src = image.src;
       mainImg.alt = image.alt ?? '';
+      mainImg.classList.remove('is-dragging');
+      mainImg.style.transform = '';
       counter.textContent = `${index + 1} / ${images.length}`;
 
       thumbs.forEach((thumb, ti) => {
@@ -127,6 +129,8 @@ const first = images[0];
       if (!lightbox.hidden) {
         lightboxImg.src = image.src;
         lightboxImg.alt = image.alt ?? '';
+        lightboxImg.classList.remove('is-dragging');
+        lightboxImg.style.transform = '';
         lightboxCounter.textContent = `${index + 1} / ${images.length}`;
       }
     }
@@ -148,19 +152,62 @@ const first = images[0];
 
     function bindSwipe(
       element: HTMLElement,
+      getActiveImg: () => HTMLImageElement | null,
       onSwipeLeft: () => void,
       onSwipeRight: () => void,
       onSwipe?: () => void,
     ) {
       let startX = 0;
       let startY = 0;
+      let startTime = 0;
       let tracking = false;
+      let locked: 'x' | 'y' | null = null;
+
+      const resetTransform = (animate = true) => {
+        const img = getActiveImg();
+        if (!img) return;
+        img.classList.toggle('is-dragging', !animate);
+        img.style.transform = '';
+      };
 
       element.addEventListener('touchstart', (event) => {
         if (event.touches.length !== 1) return;
         startX = event.touches[0].clientX;
         startY = event.touches[0].clientY;
+        startTime = performance.now();
         tracking = true;
+        locked = null;
+        resetTransform(false);
+      }, { passive: true });
+
+      element.addEventListener('touchmove', (event) => {
+        if (!tracking || event.touches.length !== 1) return;
+
+        const dx = event.touches[0].clientX - startX;
+        const dy = event.touches[0].clientY - startY;
+
+        if (!locked) {
+          if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+          locked = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+        }
+
+        if (locked !== 'x') return;
+
+        const img = getActiveImg();
+        if (!img) return;
+
+        img.classList.add('is-dragging');
+        img.style.transform = `translate3d(${dx}px, 0, 0)`;
+
+        if (Math.abs(dx) > 8) {
+          event.preventDefault();
+        }
+      }, { passive: false });
+
+      element.addEventListener('touchcancel', () => {
+        tracking = false;
+        locked = null;
+        resetTransform(true);
       }, { passive: true });
 
       element.addEventListener('touchend', (event) => {
@@ -170,10 +217,24 @@ const first = images[0];
         const touch = event.changedTouches[0];
         const dx = touch.clientX - startX;
         const dy = touch.clientY - startY;
-        const minSwipe = 40;
+        const elapsed = Math.max(performance.now() - startTime, 1);
+        const velocity = Math.abs(dx) / elapsed;
+        const wasHorizontal = locked === 'x';
+        locked = null;
 
-        if (Math.abs(dx) < minSwipe) return;
-        if (Math.abs(dy) > Math.abs(dx)) return;
+        resetTransform(true);
+
+        if (!wasHorizontal) return;
+
+        const minDistance = 20;
+        const minFlickDistance = 10;
+        const minVelocity = 0.25;
+        const shouldSwipe =
+          Math.abs(dx) >= minDistance ||
+          (velocity >= minVelocity && Math.abs(dx) >= minFlickDistance);
+
+        if (!shouldSwipe) return;
+        if (Math.abs(dy) > Math.abs(dx) * 1.25) return;
 
         onSwipe?.();
         if (dx < 0) onSwipeLeft();
@@ -186,6 +247,15 @@ const first = images[0];
 
     bindSwipe(
       viewer,
+      () => mainImg,
+      () => show(index + 1),
+      () => show(index - 1),
+      () => { suppressLightboxOpen = true; },
+    );
+
+    bindSwipe(
+      mainWrap,
+      () => mainImg,
       () => show(index + 1),
       () => show(index - 1),
       () => { suppressLightboxOpen = true; },
@@ -193,6 +263,7 @@ const first = images[0];
 
     bindSwipe(
       lightbox,
+      () => lightboxImg,
       () => show(index + 1),
       () => show(index - 1),
     );
