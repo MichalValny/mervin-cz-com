@@ -88,13 +88,18 @@ OAC_NAME="mervin-cz-com-oac"
 
 find_distribution_id() {
   if [[ -f "$STATE_FILE" ]]; then
-    jq -r '.distributionId // empty' "$STATE_FILE"
-    return
+    local saved_id
+    saved_id="$(jq -r '.distributionId // empty' "$STATE_FILE")"
+    if [[ -n "$saved_id" ]]; then
+      echo "$saved_id"
+      return
+    fi
   fi
 
+  # Prefer the oldest deployed distribution with our comment.
   aws cloudfront list-distributions \
-    --query "DistributionList.Items[?Comment=='${CLOUDFRONT_COMMENT}'].Id | [0]" \
-    --output text 2>/dev/null | sed '/^None$/d'
+    --query "DistributionList.Items[?Comment=='${CLOUDFRONT_COMMENT}'] | sort_by(@, &Id)[].Id" \
+    --output text 2>/dev/null | awk '{print $1}' | sed '/^None$/d'
 }
 
 ensure_oac() {
