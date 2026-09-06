@@ -1,67 +1,74 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import InstagramFeed from '../components/InstagramFeed.astro';
 import PostCard from '../components/PostCard.astro';
-import { posts } from '../lib/data';
+import { instagram, posts } from '../lib/data';
 ---
 
 <BaseLayout>
-  <div class="container page-layout">
-    <section class="section-block featured-section">
-      <div class="section-header">
-        <h2>Co je nového</h2>
-      </div>
-      <div class="featured-grid">
-        {posts.slice(0, 5).map((post, i) => (
-          <PostCard post={post} featured={i === 0} />
-        ))}
-      </div>
-    </section>
+  <div class="container home-layout">
+    <div class="home-content">
+      <section class="section-block featured-section">
+        <div class="section-header">
+          <h2>Co je nového</h2>
+        </div>
+        <div class="featured-grid">
+          {posts.slice(0, 5).map((post, i) => (
+            <PostCard post={post} featured={i === 0} />
+          ))}
+        </div>
+      </section>
 
-    <section class="section-block">
-      <div class="section-header">
-        <h2><a href="/kategorie/zajimavosti/">Zajímavosti</a></h2>
-        <a href="/kategorie/zajimavosti/">Všechny →</a>
-      </div>
-      <div class="post-grid">
-        {posts.filter((p) => p.categories.some((c) => c.slug === 'zajimavosti')).slice(0, 2).map((post) => (
-          <PostCard post={post} />
-        ))}
-      </div>
-    </section>
+      <section class="section-block">
+        <div class="section-header">
+          <h2><a href="/kategorie/zajimavosti/">Zajímavosti</a></h2>
+          <a href="/kategorie/zajimavosti/">Všechny →</a>
+        </div>
+        <div class="post-grid">
+          {posts.filter((p) => p.categories.some((c) => c.slug === 'zajimavosti')).slice(0, 2).map((post) => (
+            <PostCard post={post} />
+          ))}
+        </div>
+      </section>
 
-    <section class="section-block">
-      <div class="section-header">
-        <h2><a href="/kategorie/kola/">Kola</a></h2>
-        <a href="/kategorie/kola/">Všechny →</a>
-      </div>
-      <div class="post-grid">
-        {posts.filter((p) => p.categories.some((c) => c.slug === 'kola')).slice(0, 2).map((post) => (
-          <PostCard post={post} />
-        ))}
-      </div>
-    </section>
+      <section class="section-block">
+        <div class="section-header">
+          <h2><a href="/kategorie/kola/">Kola</a></h2>
+          <a href="/kategorie/kola/">Všechny →</a>
+        </div>
+        <div class="post-grid">
+          {posts.filter((p) => p.categories.some((c) => c.slug === 'kola')).slice(0, 2).map((post) => (
+            <PostCard post={post} />
+          ))}
+        </div>
+      </section>
 
-    <section class="section-block">
-      <div class="section-header">
-        <h2><a href="/kategorie/motorky/">Motorky</a></h2>
-        <a href="/kategorie/motorky/">Všechny →</a>
-      </div>
-      <div class="post-grid">
-        {posts.filter((p) => p.categories.some((c) => c.slug === 'motorky')).slice(0, 4).map((post) => (
-          <PostCard post={post} />
-        ))}
-      </div>
-    </section>
+      <section class="section-block">
+        <div class="section-header">
+          <h2><a href="/kategorie/motorky/">Motorky</a></h2>
+          <a href="/kategorie/motorky/">Všechny →</a>
+        </div>
+        <div class="post-grid">
+          {posts.filter((p) => p.categories.some((c) => c.slug === 'motorky')).slice(0, 4).map((post) => (
+            <PostCard post={post} />
+          ))}
+        </div>
+      </section>
 
-    <section class="section-block">
-      <div class="section-header">
-        <h2>Nejnovější příspěvky</h2>
-      </div>
-      <div class="post-grid">
-        {posts.slice(0, 6).map((post) => (
-          <PostCard post={post} />
-        ))}
-      </div>
-    </section>
+      <section class="section-block">
+        <div class="section-header">
+          <h2>Nejnovější příspěvky</h2>
+        </div>
+        <div class="post-grid">
+          {posts.slice(0, 6).map((post) => (
+            <PostCard post={post} />
+          ))}
+        </div>
+      </section>
+    </div>
+
+    <aside class="home-aside">
+      <InstagramFeed feed={instagram} />
+    </aside>
   </div>
 </BaseLayout>
