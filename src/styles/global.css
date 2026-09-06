@@ -14,9 +14,9 @@
   --shadow-lg: 0 12px 40px rgba(26, 21, 18, 0.1);
   --radius: 10px;
   --radius-lg: 16px;
-  --font-sans: 'DM Sans', system-ui, sans-serif;
-  --font-heading: 'Fraunces', Georgia, serif;
-  --font-serif: 'Literata', Georgia, serif;
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-heading: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --max-width: 1520px;
   --content-width: 860px;
 }
@@ -77,9 +77,9 @@ a:hover {
 
 h1, h2, h3, h4 {
   font-family: var(--font-heading);
-  line-height: 1.2;
+  line-height: 1.15;
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 }
 
 .container {
@@ -444,10 +444,11 @@ body.header-static .site-header {
 
 .post-card-category {
   display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   color: var(--color-maple);
   margin-bottom: 0.4rem;
 }
@@ -480,9 +481,11 @@ body.header-static .site-header {
 }
 
 .post-card-meta {
-  font-size: 0.82rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   margin-bottom: 0.65rem;
+  letter-spacing: 0.02em;
 }
 
 .post-card-excerpt {
@@ -515,10 +518,11 @@ body.header-static .site-header {
 
 .article-category {
   display: inline-block;
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   color: var(--color-maple);
   margin-bottom: 0.75rem;
 }
@@ -533,7 +537,9 @@ body.header-static .site-header {
 
 .article-meta {
   color: var(--color-text-muted);
-  font-size: 0.95rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
 }
 
 .breadcrumb {
@@ -559,8 +565,8 @@ body.header-static .site-header {
 }
 
 .article-content {
-  font-family: var(--font-serif);
-  font-size: 1.125rem;
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
   line-height: 1.75;
   overflow-wrap: anywhere;
 }
