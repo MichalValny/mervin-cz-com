@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import { posts } from '../../lib/data';
+import { decodeHtml, stripHtml } from '../../lib/utils';
+
+const query = Astro.url.searchParams.get('q')?.trim().toLowerCase() ?? '';
+
+const results = query
+  ? posts.filter((post) => {
+      const haystack = [
+        decodeHtml(post.title),
+        stripHtml(post.content),
+        stripHtml(post.excerpt),
+        ...post.categories.map((c) => c.name),
+      ]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    })
+  : [];
+---
+
+<BaseLayout title={query ? `Hledání: ${query}` : 'Hledat'}>
+  <div class="container page-layout">
+    <div class="main-content">
+      <h1 class="page-title">{query ? `Výsledky pro „${query}"` : 'Hledat'}</h1>
+
+      {!query && (
+        <p class="page-description">Zadejte hledaný výraz do vyhledávacího pole v hlavičce.</p>
+      )}
+
+      {query && results.length === 0 && (
+        <p class="search-empty">Nebyly nalezeny žádné příspěvky.</p>
+      )}
+
+      {results.length > 0 && (
+        <>
+          <p class="page-description">Nalezeno {results.length} příspěvků</p>
+          <div class="post-grid">
+            {results.map((post) => (
+              <PostCard post={post} />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+
+    <Sidebar />
+  </div>
+</BaseLayout>

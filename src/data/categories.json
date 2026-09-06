@@ -1,0 +1,130 @@
+[
+  {
+    "id": 13,
+    "name": "Motorky",
+    "slug": "motorky",
+    "parent": 0,
+    "count": 38,
+    "link": "https://www.mervin-cz.com/category/motorky/"
+  },
+  {
+    "id": 24,
+    "name": "Cestování",
+    "slug": "cestovani",
+    "parent": 26,
+    "count": 32,
+    "link": "https://www.mervin-cz.com/category/ostatni/cestovani/"
+  },
+  {
+    "id": 21,
+    "name": "Zimní Mervin",
+    "slug": "zimni-mervin",
+    "parent": 26,
+    "count": 15,
+    "link": "https://www.mervin-cz.com/category/ostatni/zimni-mervin/"
+  },
+  {
+    "id": 23,
+    "name": "Kola",
+    "slug": "kola",
+    "parent": 0,
+    "count": 11,
+    "link": "https://www.mervin-cz.com/category/kola/"
+  },
+  {
+    "id": 26,
+    "name": "Ostatní",
+    "slug": "ostatni",
+    "parent": 0,
+    "count": 7,
+    "link": "https://www.mervin-cz.com/category/ostatni/"
+  },
+  {
+    "id": 22,
+    "name": "Podzimní Hořák",
+    "slug": "podzimni-horak",
+    "parent": 26,
+    "count": 6,
+    "link": "https://www.mervin-cz.com/category/ostatni/podzimni-horak/"
+  },
+  {
+    "id": 33,
+    "name": "Narozeniny",
+    "slug": "narozeniny",
+    "parent": 26,
+    "count": 5,
+    "link": "https://www.mervin-cz.com/category/ostatni/narozeniny/"
+  },
+  {
+    "id": 25,
+    "name": "Vodáci",
+    "slug": "vodaci",
+    "parent": 26,
+    "count": 5,
+    "link": "https://www.mervin-cz.com/category/ostatni/vodaci/"
+  },
+  {
+    "id": 29,
+    "name": "Grilování, pergola",
+    "slug": "gril-pergola",
+    "parent": 26,
+    "count": 4,
+    "link": "https://www.mervin-cz.com/category/ostatni/gril-pergola/"
+  },
+  {
+    "id": 27,
+    "name": "Podzimní Sklípky",
+    "slug": "podzimni-sklepy",
+    "parent": 26,
+    "count": 4,
+    "link": "https://www.mervin-cz.com/category/ostatni/podzimni-sklepy/"
+  },
+  {
+    "id": 1,
+    "name": "Uncategorized",
+    "slug": "uncategorized",
+    "parent": 26,
+    "count": 4,
+    "link": "https://www.mervin-cz.com/category/ostatni/uncategorized/"
+  },
+  {
+    "id": 28,
+    "name": "Zabíjačky",
+    "slug": "zabijacky",
+    "parent": 26,
+    "count": 4,
+    "link": "https://www.mervin-cz.com/category/ostatni/zabijacky/"
+  },
+  {
+    "id": 31,
+    "name": "Sele pod Hádkem",
+    "slug": "sele-pod-hadkem",
+    "parent": 26,
+    "count": 3,
+    "link": "https://www.mervin-cz.com/category/ostatni/sele-pod-hadkem/"
+  },
+  {
+    "id": 30,
+    "name": "Silvestry",
+    "slug": "silvestry",
+    "parent": 26,
+    "count": 3,
+    "link": "https://www.mervin-cz.com/category/ostatni/silvestry/"
+  },
+  {
+    "id": 35,
+    "name": "Zajímavosti",
+    "slug": "zajimavosti",
+    "parent": 0,
+    "count": 3,
+    "link": "https://www.mervin-cz.com/category/zajimavosti/"
+  },
+  {
+    "id": 34,
+    "name": "Mervin room",
+    "slug": "mervin-room",
+    "parent": 26,
+    "count": 1,
+    "link": "https://www.mervin-cz.com/category/ostatni/mervin-room/"
+  }
+]

@@ -1,0 +1,46 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../lib/data';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+}
+
+const { title, description, image } = Astro.props;
+const pageTitle = title ? `${title} – ${site.siteName}` : site.siteName;
+const pageDescription = description ?? 'Mervinovy stránky – motorky, kola, cestování a společné akce od roku 1996.';
+const pageImage = image ?? site.logo;
+---
+
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href={site.favicon} sizes="32x32" />
+    <link rel="apple-touch-icon" href={site.favicon} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:image" content={pageImage} />
+    <meta property="og:type" content="website" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet" />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Přeskočit na obsah</a>
+    <Header />
+    <main id="content">
+      <slot />
+    </main>
+    <Footer />
+    <slot name="scripts" />
+  </body>
+</html>

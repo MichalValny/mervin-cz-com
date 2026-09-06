@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import { categories, getPostsByCategorySlug } from '../../lib/data';
+
+export function getStaticPaths() {
+  return categories.map((cat) => ({
+    params: { slug: cat.slug },
+    props: { category: cat },
+  }));
+}
+
+const { category } = Astro.props;
+const categoryPosts = getPostsByCategorySlug(category.slug);
+---
+
+<BaseLayout
+  title={category.name}
+  description={`Příspěvky v rubrice ${category.name} – ${category.count} článků`}
+>
+  <div class="container page-layout">
+    <div class="main-content">
+      <h1 class="page-title">{category.name}</h1>
+      <p class="page-description">{category.count} příspěvků</p>
+
+      {categoryPosts.length === 0 ? (
+        <p class="search-empty">V této rubrice zatím nejsou žádné příspěvky.</p>
+      ) : (
+        <div class="post-grid">
+          {categoryPosts.map((post) => (
+            <PostCard post={post} />
+          ))}
+        </div>
+      )}
+    </div>
+
+    <Sidebar />
+  </div>
+</BaseLayout>

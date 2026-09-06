@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import GalleryEmbed from '../../../../components/GalleryEmbed.astro';
+import Sidebar from '../../../../components/Sidebar.astro';
+import { posts } from '../../../../lib/data';
+import { decodeHtml, formatDate, getExcerpt, getPostImage } from '../../../../lib/utils';
+
+export function getStaticPaths() {
+  return posts.map((post) => ({
+    params: {
+      year: String(post.year),
+      month: String(post.month).padStart(2, '0'),
+      day: String(post.day).padStart(2, '0'),
+      slug: post.slug,
+    },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const title = decodeHtml(post.title);
+const category = post.categories[0];
+const image = getPostImage(post);
+---
+
+<BaseLayout title={title} description={getExcerpt(post)} image={image ?? undefined}>
+  <div class="container page-layout">
+    <article class="main-content">
+      <nav class="breadcrumb" aria-label="Drobečková navigace">
+        <a href="/">Domů</a>
+        <span>/</span>
+        <span>{post.year}</span>
+        <span>/</span>
+        <span>{String(post.month).padStart(2, '0')}</span>
+        <span>/</span>
+        <span>{String(post.day).padStart(2, '0')}</span>
+        <span>/</span>
+        <span>{title}</span>
+      </nav>
+
+      <header class="article-header">
+        {category && (
+          <a href={`/kategorie/${category.slug}/`} class="article-category">{category.name}</a>
+        )}
+        <h1 class="article-title">{title}</h1>
+        <div class="article-meta">{formatDate(post.date)}</div>
+      </header>
+
+      {post.galleries.map((gallery) => (
+        <GalleryEmbed html={gallery} />
+      ))}
+
+      {post.content && (
+        <div class="article-content" set:html={post.content} />
+      )}
+    </article>
+
+    <Sidebar />
+  </div>
+</BaseLayout>
+
+<script src="https://cdn.jsdelivr.net/npm/publicalbum@latest/embed-ui.min.js" is:inline slot="scripts"></script>

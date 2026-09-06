@@ -1,0 +1,85 @@
+---
+import { site, mainNav, posts } from '../lib/data';
+import { decodeHtml } from '../lib/utils';
+
+const currentPath = Astro.url.pathname;
+const latestPosts = posts.slice(0, 5);
+const today = new Intl.DateTimeFormat('cs-CZ', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+}).format(new Date());
+---
+
+<header class="site-header">
+  <div class="header-top">
+    <div class="container">{today}</div>
+  </div>
+  <div class="container header-main">
+    <a href="/" class="logo-link">
+      <img src={site.logo} alt={site.siteName} class="logo-img" width="528" height="133" />
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false">Menu</button>
+
+    <nav aria-label="Hlavní navigace">
+      <ul class="main-nav" id="main-nav">
+        {mainNav.map((item) => (
+          item.children ? (
+            <li class="has-dropdown">
+              <button type="button" class="dropdown-toggle" aria-haspopup="true">
+                {item.label}
+              </button>
+              <div class="dropdown">
+                {item.children.map((child) => (
+                  <a href={child.href}>{child.label}</a>
+                ))}
+              </div>
+            </li>
+          ) : (
+            <li>
+              <a
+                href={item.href}
+                class:list={{ active: currentPath.startsWith(item.href) && item.href !== '/' }}
+              >
+                {item.label}
+              </a>
+            </li>
+          )
+        ))}
+      </ul>
+    </nav>
+
+    <form class="search-form" action="/hledat/" method="get" role="search">
+      <input type="search" name="q" placeholder="Hledat…" aria-label="Hledat" />
+      <button type="submit">Hledat</button>
+    </form>
+  </div>
+
+  <div class="ticker-bar">
+    <div class="container ticker-inner">
+      <span class="ticker-label">Poslední příspěvky</span>
+      <div class="ticker-track" aria-hidden="true">
+        {[...latestPosts, ...latestPosts].map((post) => (
+          <a href={post.path}>{decodeHtml(post.title)}</a>
+        ))}
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  const toggle = document.getElementById('nav-toggle');
+  const nav = document.getElementById('main-nav');
+  toggle?.addEventListener('click', () => {
+    const open = nav?.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', String(!!open));
+  });
+
+  document.querySelectorAll('.dropdown-toggle').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      btn.parentElement?.classList.toggle('open');
+    });
+  });
+</script>

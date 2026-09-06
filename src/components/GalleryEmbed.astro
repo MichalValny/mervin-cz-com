@@ -1,0 +1,13 @@
+---
+interface Props {
+  html: string;
+}
+
+const { html } = Astro.props;
+---
+
+<div class="gallery-section">
+  <div class="gallery-wrapper" set:html={html} />
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/publicalbum@latest/embed-ui.min.js" is:inline></script>
