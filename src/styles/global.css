@@ -8,7 +8,14 @@
   --color-accent-dark: #9a1830;
   --color-maple: #c4521a;
   --color-border: #ebe6de;
-  --color-header: #1a1512;
+  --color-chrome: #dceeff;
+  --color-chrome-top: #e8f4fc;
+  --color-chrome-text: #1a3a52;
+  --color-chrome-text-muted: #4d6b82;
+  --color-chrome-border: rgba(26, 58, 82, 0.14);
+  --color-chrome-hover: rgba(255, 255, 255, 0.72);
+  --color-chrome-input: rgba(255, 255, 255, 0.82);
+  --color-header: var(--color-chrome);
   --shadow-sm: 0 1px 2px rgba(26, 21, 18, 0.04);
   --shadow-md: 0 4px 20px rgba(26, 21, 18, 0.07);
   --shadow-lg: 0 12px 40px rgba(26, 21, 18, 0.1);
@@ -110,12 +117,12 @@ h1, h2, h3, h4 {
 
 /* Header */
 .site-header {
-  background: var(--color-header);
-  color: white;
+  background: linear-gradient(180deg, var(--color-chrome-top) 0%, var(--color-chrome) 100%);
+  color: var(--color-chrome-text);
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 1px 0 var(--color-chrome-border);
   padding-top: env(safe-area-inset-top, 0);
 }
 
@@ -124,10 +131,10 @@ body.header-static .site-header {
 }
 
 .header-top {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--color-chrome-border);
   padding: 0.5rem 0;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--color-chrome-text-muted);
 }
 
 .header-main {
@@ -152,12 +159,12 @@ body.header-static .site-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: white;
+  color: var(--color-chrome-text);
 }
 
 .logo-link:hover {
-  color: white;
-  opacity: 0.9;
+  color: var(--color-chrome-text);
+  opacity: 0.85;
 }
 
 .logo-img {
@@ -172,9 +179,9 @@ body.header-static .site-header {
   justify-content: center;
   width: 44px;
   height: 44px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: white;
+  background: var(--color-chrome-input);
+  border: 1px solid var(--color-chrome-border);
+  color: var(--color-chrome-text);
   padding: 0;
   border-radius: 10px;
   cursor: pointer;
@@ -225,7 +232,7 @@ body.header-static .site-header {
 .main-nav > li > button {
   display: block;
   padding: 0.6rem 0.9rem;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--color-chrome-text);
   font-size: 0.95rem;
   font-weight: 500;
   border-radius: 8px;
@@ -238,8 +245,8 @@ body.header-static .site-header {
 .main-nav > li > a:hover,
 .main-nav > li > a.active,
 .main-nav > li > button:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-accent-dark);
+  background: var(--color-chrome-hover);
 }
 
 .dropdown {
@@ -280,17 +287,17 @@ body.header-static .site-header {
 
 .search-form input {
   padding: 0.55rem 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--color-chrome-border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
+  background: var(--color-chrome-input);
+  color: var(--color-chrome-text);
   font: inherit;
   min-width: 160px;
   min-height: 44px;
 }
 
 .search-form input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--color-chrome-text-muted);
 }
 
 .search-form button {
@@ -724,10 +731,11 @@ body.header-static .site-header {
 
 /* Footer */
 .site-footer {
-  background: var(--color-header);
-  color: rgba(255, 255, 255, 0.7);
+  background: linear-gradient(180deg, var(--color-chrome) 0%, var(--color-chrome-top) 100%);
+  color: var(--color-chrome-text-muted);
   padding: 2.5rem 0;
   margin-top: auto;
+  border-top: 1px solid var(--color-chrome-border);
 }
 
 .footer-inner {
@@ -739,7 +747,11 @@ body.header-static .site-header {
 }
 
 .footer-inner a {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--color-chrome-text);
+}
+
+.footer-inner a:hover {
+  color: var(--color-accent);
 }
 
 .footer-categories {
@@ -862,9 +874,9 @@ body.header-static .site-header {
     flex-direction: column;
     align-items: stretch;
     gap: 0.15rem;
-    background: var(--color-header);
+    background: var(--color-chrome);
     padding: 0.5rem 0 0.25rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--color-chrome-border);
     max-height: min(70vh, 520px);
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -887,7 +899,7 @@ body.header-static .site-header {
   .dropdown {
     position: static;
     box-shadow: none;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--color-chrome-hover);
     margin: 0 0 0.25rem;
     padding: 0.25rem 0.5rem 0.5rem;
   }
