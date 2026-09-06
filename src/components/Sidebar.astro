@@ -1,38 +1,10 @@
 ---
-import { getArchives, categories, posts } from '../lib/data';
-import { decodeHtml } from '../lib/utils';
+import { categories } from '../lib/data';
 
-const archives = getArchives().slice(0, 12);
 const topCategories = categories.slice(0, 12);
-const latestPosts = posts.slice(0, 8);
 ---
 
 <aside class="sidebar">
-  <div class="sidebar-widget">
-    <h3>Nejnovější příspěvky</h3>
-    <ul class="sidebar-list">
-      {latestPosts.map((post) => (
-        <li>
-          <a href={post.path}>{decodeHtml(post.title)}</a>
-        </li>
-      ))}
-    </ul>
-  </div>
-
-  <div class="sidebar-widget">
-    <h3>Archivy</h3>
-    <ul class="sidebar-list">
-      {archives.map((archive) => (
-        <li>
-          <a href={`/archiv/${archive.key}/`}>
-            {archive.label}
-            <span class="count"> ({archive.count})</span>
-          </a>
-        </li>
-      ))}
-    </ul>
-  </div>
-
   <div class="sidebar-widget">
     <h3>Rubriky</h3>
     <ul class="sidebar-list">
