@@ -1,8 +1,20 @@
-const entityMap: Record<string, string> = {
-  '&amp;': '&',
-  '&lt;': '<',
-  '&gt;': '>',
-  '&quot;': '"',
+const namedEntities: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: ' ',
+  hellip: '…',
+  mdash: '—',
+  ndash: '–',
+  rsquo: '\u2019',
+  lsquo: '\u2018',
+  rdquo: '\u201D',
+  ldquo: '\u201C',
+};
+
+const legacyEntityMap: Record<string, string> = {
   '&#039;': "'",
   '&#8211;': '–',
   '&#8212;': '—',
@@ -14,11 +26,24 @@ const entityMap: Record<string, string> = {
 };
 
 export function decodeHtml(text: string): string {
-  return text.replace(/&(?:#?\w+);/g, (match) => entityMap[match] ?? match);
+  return text.replace(/&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z]+);/g, (match, entity: string) => {
+    if (entity.startsWith('#x') || entity.startsWith('#X')) {
+      const code = parseInt(entity.slice(2), 16);
+      return Number.isFinite(code) ? String.fromCharCode(code) : match;
+    }
+    if (entity.startsWith('#')) {
+      const code = parseInt(entity.slice(1), 10);
+      return Number.isFinite(code) ? String.fromCharCode(code) : match;
+    }
+    return namedEntities[entity.toLowerCase()] ?? legacyEntityMap[match] ?? match;
+  });
 }
 
 export function stripHtml(html: string): string {
-  return decodeHtml(html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim());
+  return decodeHtml(html.replace(/<[^>]*>/g, ' '))
+    .replace(/\u00a0/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 export function formatDate(dateStr: string): string {
