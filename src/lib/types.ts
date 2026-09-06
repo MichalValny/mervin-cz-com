@@ -37,23 +37,6 @@ export interface SiteData {
   logo: string;
   favicon: string;
   instagram: boolean;
-  instagramUsername?: string;
-  instagramProfileUrl?: string;
-}
-
-export interface InstagramPost {
-  id: string;
-  permalink: string;
-  imageUrl: string;
-  mediaType: string;
-}
-
-export interface InstagramFeed {
-  username: string;
-  profileUrl: string;
-  updatedAt: string | null;
-  source: string;
-  posts: InstagramPost[];
 }
 
 export interface NavItem {

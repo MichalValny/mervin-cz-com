@@ -1,8 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import InstagramFeed from '../../components/InstagramFeed.astro';
 import PostCard from '../../components/PostCard.astro';
-import { categories, getPostsByCategorySlug, instagram } from '../../lib/data';
+import { categories, getPostsByCategorySlug } from '../../lib/data';
 
 export function getStaticPaths() {
   return categories.map((cat) => ({
@@ -19,24 +18,18 @@ const categoryPosts = getPostsByCategorySlug(category.slug);
   title={category.name}
   description={`Příspěvky v rubrice ${category.name} – ${category.count} článků`}
 >
-  <div class="container home-layout">
-    <div class="home-content">
-      <h1 class="page-title">{category.name}</h1>
-      <p class="page-description">{category.count} příspěvků</p>
+  <div class="container page-layout">
+    <h1 class="page-title">{category.name}</h1>
+    <p class="page-description">{category.count} příspěvků</p>
 
-      {categoryPosts.length === 0 ? (
-        <p class="search-empty">V této rubrice zatím nejsou žádné příspěvky.</p>
-      ) : (
-        <div class="post-grid">
-          {categoryPosts.map((post) => (
-            <PostCard post={post} />
-          ))}
-        </div>
-      )}
-    </div>
-
-    <aside class="home-aside">
-      <InstagramFeed feed={instagram} />
-    </aside>
+    {categoryPosts.length === 0 ? (
+      <p class="search-empty">V této rubrice zatím nejsou žádné příspěvky.</p>
+    ) : (
+      <div class="post-grid">
+        {categoryPosts.map((post) => (
+          <PostCard post={post} />
+        ))}
+      </div>
+    )}
   </div>
 </BaseLayout>

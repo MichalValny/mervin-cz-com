@@ -167,9 +167,7 @@ def main():
         "siteUrl": BASE,
         "logo": f"{BASE}/wp-content/uploads/2020/09/title2-1.png",
         "favicon": f"{BASE}/wp-content/uploads/2020/09/leaf-flag-of-canada-png-4-150x150.png",
-        "instagram": True,
-        "instagramUsername": "mervinczcom",
-        "instagramProfileUrl": "https://www.instagram.com/mervinczcom/",
+        "instagram": False,
     }
 
     with open(OUTPUT / "site.json", "w", encoding="utf-8") as f:
