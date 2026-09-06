@@ -6,12 +6,6 @@ const topCategories = categories.filter((c) => c.parent === 0).slice(0, 6);
 
 <footer class="site-footer">
   <div class="container footer-inner">
-    <div class="footer-brand">
-      <a href="/">
-        <img src={site.logo} alt={site.siteName} height="32" />
-      </a>
-      <p class="footer-tagline">Mervinovy stránky od roku 1996</p>
-    </div>
     <nav class="footer-categories" aria-label="Rubriky">
       {topCategories.map((cat) => (
         <a href={`/kategorie/${cat.slug}/`}>{cat.name}</a>
