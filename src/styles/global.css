@@ -29,6 +29,19 @@
   --space-section: 3.5rem;
 }
 
+@media (min-width: 1024px) {
+  :root {
+    --content-width: 900px;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --max-width: 1320px;
+    --content-width: 1080px;
+  }
+}
+
 *,
 *::before,
 *::after {
