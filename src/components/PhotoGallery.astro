@@ -1,0 +1,177 @@
+---
+import type { LocalGallery } from '../lib/types';
+
+interface Props {
+  gallery: LocalGallery;
+  galleryId: string;
+}
+
+const { gallery, galleryId } = Astro.props;
+const images = gallery.images;
+const first = images[0];
+---
+
+<div class="gallery-section">
+  <div class="photo-gallery" data-gallery-id={galleryId}>
+    {gallery.title && (
+      <div class="photo-gallery-header">{gallery.title}</div>
+    )}
+
+    <div class="photo-gallery-viewer" role="region" aria-label="Prohlížeč fotografií">
+      <button type="button" class="photo-gallery-nav photo-gallery-nav--prev" aria-label="Předchozí fotografie">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+
+      <button type="button" class="photo-gallery-main-wrap" aria-label="Otevřít na celou obrazovku">
+        <img
+          class="photo-gallery-main"
+          src={first.src}
+          alt={first.alt ?? ''}
+          width="1920"
+          height="1080"
+          decoding="async"
+        />
+      </button>
+
+      <button type="button" class="photo-gallery-nav photo-gallery-nav--next" aria-label="Další fotografie">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+
+      <span class="photo-gallery-counter" aria-live="polite">1 / {images.length}</span>
+    </div>
+
+    <div class="photo-gallery-filmstrip-wrap">
+      <div class="photo-gallery-filmstrip" role="tablist" aria-label="Náhledy fotografií">
+        {images.map((image, index) => (
+          <button
+            type="button"
+            class:list={['photo-gallery-thumb', { 'is-active': index === 0 }]}
+            data-index={index}
+            role="tab"
+            aria-selected={index === 0 ? 'true' : 'false'}
+            aria-label={`Fotografie ${index + 1} z ${images.length}`}
+          >
+            <img src={image.thumb} alt="" loading="lazy" width="120" height="120" />
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <script type="application/json" class="photo-gallery-data" set:html={JSON.stringify(images)} />
+  </div>
+</div>
+
+<div class="photo-gallery-lightbox" hidden aria-hidden="true">
+  <button type="button" class="photo-gallery-lightbox-close" aria-label="Zavřít">
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
+  <button type="button" class="photo-gallery-lightbox-nav photo-gallery-lightbox-nav--prev" aria-label="Předchozí fotografie">
+    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <polyline points="15 18 9 12 15 6"></polyline>
+    </svg>
+  </button>
+  <img class="photo-gallery-lightbox-img" src="" alt="" />
+  <button type="button" class="photo-gallery-lightbox-nav photo-gallery-lightbox-nav--next" aria-label="Další fotografie">
+    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </button>
+  <span class="photo-gallery-lightbox-counter"></span>
+</div>
+
+<script>
+  function initPhotoGallery(root: HTMLElement) {
+    const dataEl = root.querySelector('.photo-gallery-data');
+    if (!dataEl?.textContent) return;
+
+    const images: { src: string; thumb: string; alt?: string }[] = JSON.parse(dataEl.textContent);
+    let index = 0;
+
+    const mainImg = root.querySelector<HTMLImageElement>('.photo-gallery-main')!;
+    const counter = root.querySelector<HTMLElement>('.photo-gallery-counter')!;
+    const thumbs = [...root.querySelectorAll<HTMLButtonElement>('.photo-gallery-thumb')];
+    const prevBtn = root.querySelector<HTMLButtonElement>('.photo-gallery-nav--prev')!;
+    const nextBtn = root.querySelector<HTMLButtonElement>('.photo-gallery-nav--next')!;
+    const mainWrap = root.querySelector<HTMLButtonElement>('.photo-gallery-main-wrap')!;
+
+    const lightbox = document.querySelector<HTMLElement>('.photo-gallery-lightbox')!;
+    const lightboxImg = lightbox.querySelector<HTMLImageElement>('.photo-gallery-lightbox-img')!;
+    const lightboxCounter = lightbox.querySelector<HTMLElement>('.photo-gallery-lightbox-counter')!;
+    const lightboxClose = lightbox.querySelector<HTMLButtonElement>('.photo-gallery-lightbox-close')!;
+    const lightboxPrev = lightbox.querySelector<HTMLButtonElement>('.photo-gallery-lightbox-nav--prev')!;
+    const lightboxNext = lightbox.querySelector<HTMLButtonElement>('.photo-gallery-lightbox-nav--next')!;
+
+    function show(i: number) {
+      index = (i + images.length) % images.length;
+      const image = images[index];
+      mainImg.src = image.src;
+      mainImg.alt = image.alt ?? '';
+      counter.textContent = `${index + 1} / ${images.length}`;
+
+      thumbs.forEach((thumb, ti) => {
+        const active = ti === index;
+        thumb.classList.toggle('is-active', active);
+        thumb.setAttribute('aria-selected', active ? 'true' : 'false');
+        if (active) {
+          thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      });
+
+      if (!lightbox.hidden) {
+        lightboxImg.src = image.src;
+        lightboxImg.alt = image.alt ?? '';
+        lightboxCounter.textContent = `${index + 1} / ${images.length}`;
+      }
+    }
+
+    function openLightbox() {
+      lightbox.hidden = false;
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('photo-gallery-open');
+      lightboxImg.src = images[index].src;
+      lightboxImg.alt = images[index].alt ?? '';
+      lightboxCounter.textContent = `${index + 1} / ${images.length}`;
+    }
+
+    function closeLightbox() {
+      lightbox.hidden = true;
+      lightbox.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('photo-gallery-open');
+    }
+
+    prevBtn.addEventListener('click', () => show(index - 1));
+    nextBtn.addEventListener('click', () => show(index + 1));
+    thumbs.forEach((thumb) => {
+      thumb.addEventListener('click', () => show(Number(thumb.dataset.index)));
+    });
+    mainWrap.addEventListener('click', openLightbox);
+    lightboxClose.addEventListener('click', closeLightbox);
+    lightboxPrev.addEventListener('click', () => show(index - 1));
+    lightboxNext.addEventListener('click', () => show(index + 1));
+
+    lightbox.addEventListener('click', (event) => {
+      if (event.target === lightbox) closeLightbox();
+    });
+
+    root.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') show(index - 1);
+      if (event.key === 'ArrowRight') show(index + 1);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (lightbox.hidden) return;
+      if (event.key === 'Escape') closeLightbox();
+      if (event.key === 'ArrowLeft') show(index - 1);
+      if (event.key === 'ArrowRight') show(index + 1);
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('.photo-gallery').forEach(initPhotoGallery);
+</script>

@@ -64,8 +64,22 @@ export function formatDateShort(dateStr: string): string {
   }).format(date);
 }
 
-export function getPostImage(post: { featuredImage: string | null; galleries: string[] }): string | null {
+const SITE_URL = 'https://www.mervin-cz.com';
+
+export function resolveImageUrl(url: string | null): string | null {
+  if (!url) return null;
+  if (url.startsWith('/')) return `${SITE_URL}${url}`;
+  return url;
+}
+
+export function getPostImage(post: {
+  featuredImage: string | null;
+  galleries: string[];
+  localGalleries?: { images: { src: string }[] }[];
+}): string | null {
   if (post.featuredImage) return post.featuredImage;
+  const local = post.localGalleries?.[0]?.images[0]?.src;
+  if (local) return local;
   const gallery = post.galleries[0];
   if (!gallery) return null;
   const match = gallery.match(/object data="([^"]+)"/);
