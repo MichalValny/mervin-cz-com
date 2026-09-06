@@ -2,18 +2,9 @@
 import { site, mainNav } from '../lib/data';
 
 const currentPath = Astro.url.pathname;
-const today = new Intl.DateTimeFormat('cs-CZ', {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-}).format(new Date());
 ---
 
 <header class="site-header">
-  <div class="header-top">
-    <div class="container">{today}</div>
-  </div>
   <div class="container header-main">
     <div class="header-bar">
       <a href="/" class="logo-link">

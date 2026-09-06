@@ -18,12 +18,14 @@ const categoryPosts = getPostsByCategorySlug(category.slug);
   title={category.name}
   description={`Příspěvky v rubrice ${category.name} – ${category.count} článků`}
 >
-  <div class="container page-layout">
-    <h1 class="page-title">{category.name}</h1>
-    <p class="page-description">{category.count} příspěvků</p>
+  <div class="container page-layout page-layout--wide">
+    <header class="page-header">
+      <h1 class="page-title">{category.name}</h1>
+      <p class="page-description">{category.count} příspěvků</p>
+    </header>
 
     {categoryPosts.length === 0 ? (
-      <p class="search-empty">V této rubrice zatím nejsou žádné příspěvky.</p>
+      <p class="empty-state">V této rubrice zatím nejsou žádné příspěvky.</p>
     ) : (
       <div class="post-grid">
         {categoryPosts.map((post) => (

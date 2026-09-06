@@ -6,13 +6,11 @@ const topCategories = categories.filter((c) => c.parent === 0).slice(0, 6);
 
 <footer class="site-footer">
   <div class="container footer-inner">
-    <div>
+    <div class="footer-brand">
       <a href="/">
-        <img src={site.logo} alt={site.siteName} height="36" style="opacity: 0.9" />
+        <img src={site.logo} alt={site.siteName} height="32" />
       </a>
-      <p style="margin: 0.75rem 0 0; font-size: 0.9rem">
-        Mervinovy stránky od roku 1996
-      </p>
+      <p class="footer-tagline">Mervinovy stránky od roku 1996</p>
     </div>
     <nav class="footer-categories" aria-label="Rubriky">
       {topCategories.map((cat) => (

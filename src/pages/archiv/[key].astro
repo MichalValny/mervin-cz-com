@@ -18,8 +18,10 @@ const archivePosts = posts.filter((p) => p.year === year && p.month === month);
 <BaseLayout title={archive.label} description={`Archiv ${archive.label}`}>
   <div class="container page-layout">
     <div class="main-content">
-      <h1 class="page-title">Archiv: {archive.label}</h1>
-      <p class="page-description">{archivePosts.length} příspěvků</p>
+      <header class="page-header">
+        <h1 class="page-title">Archiv: {archive.label}</h1>
+        <p class="page-description">{archivePosts.length} příspěvků</p>
+      </header>
 
       <div class="post-grid">
         {archivePosts.map((post) => (
