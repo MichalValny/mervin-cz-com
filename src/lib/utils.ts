@@ -77,3 +77,82 @@ export function getExcerpt(post: { excerpt: string; content: string }, maxLength
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength).trim()}…`;
 }
+
+function cleanParagraphInner(html: string): string {
+  return html
+    .replace(/^(?:&nbsp;|\s)+/gi, '')
+    .replace(/(?:&nbsp;|\s)+$/gi, '')
+    .trim();
+}
+
+function isRiderLine(text: string): boolean {
+  const plain = stripHtml(text).replace(/\u00a0/g, ' ').trim();
+  if (!/(?:–|—)/.test(plain) || plain.endsWith(':') || plain.length > 120) {
+    return false;
+  }
+  if (/^\d/.test(plain)) {
+    return false;
+  }
+  return /jawa|čz|pav|velo|bizon|panelka|kývačka|side|solex|simson/i.test(plain);
+}
+
+function startsWithLowercase(text: string): boolean {
+  const plain = stripHtml(text).replace(/^[\s\u00a0]+/, '');
+  return /^[a-záčďéěíňóřšťúůýž]/.test(plain);
+}
+
+function isDayHeading(text: string): boolean {
+  return /^\d+\.\s*den\b/i.test(stripHtml(text).replace(/\u00a0/g, ' ').trim());
+}
+
+export function formatArticleContent(html: string): string {
+  let content = html
+    .replace(/<p>(?:\s|&nbsp;)*<\/p>/gi, '')
+    .replace(/\n{3,}/g, '\n\n');
+
+  content = content.replace(/<p>((?:&nbsp;|\s|[^<])*)<\/p>/gi, (_match, inner: string) => {
+    const cleaned = cleanParagraphInner(inner);
+    return cleaned ? `<p>${cleaned}</p>` : '';
+  });
+
+  content = content.replace(
+    /<p>([^<]*(?:&nbsp;|\s)*(?:–|—|&#8211;|&#8212;|-)[^<]*)<\/p>\s*<p>((?:&nbsp;|\s)*[a-záčďéěíňóřšťúůýž][^<]*)<\/p>/gi,
+    (_match, label: string, body: string) => {
+      const cleanLabel = cleanParagraphInner(label);
+      const cleanBody = cleanParagraphInner(body);
+      if (!isRiderLine(cleanLabel) || !startsWithLowercase(cleanBody)) {
+        return _match;
+      }
+      return `<p class="article-entry"><strong class="article-entry-label">${cleanLabel}</strong> ${cleanBody}</p>`;
+    },
+  );
+
+  content = content.replace(/<p><strong>([^<]+)<\/strong><\/p>/gi, (_match, label: string) => {
+    const cleanLabel = cleanParagraphInner(label);
+    if (isDayHeading(cleanLabel)) {
+      return `<p class="article-day-heading"><strong>${cleanLabel}</strong></p>`;
+    }
+    return `<p class="article-section-label"><strong>${cleanLabel}</strong></p>`;
+  });
+
+  content = content.replace(
+    /<p>((?:&nbsp;|\s){2,}[^<]+)<\/p>/gi,
+    (_match, inner: string) => `<p class="article-diary">${cleanParagraphInner(inner)}</p>`,
+  );
+
+  const rosterPattern = /(?:<p>([^<]*(?:&nbsp;|\s)*(?:–|—|&#8211;|&#8212;|-)[^<]*)<\/p>\s*)+/gi;
+  content = content.replace(rosterPattern, (block) => {
+    const items = [...block.matchAll(/<p>([^<]*)<\/p>/gi)]
+      .map((match) => cleanParagraphInner(match[1]))
+      .filter(Boolean);
+
+    if (items.length < 2 || !items.every(isRiderLine)) {
+      return block;
+    }
+
+    const listItems = items.map((item) => `<li>${item}</li>`).join('');
+    return `<ul class="article-roster">${listItems}</ul>`;
+  });
+
+  return content.trim();
+}

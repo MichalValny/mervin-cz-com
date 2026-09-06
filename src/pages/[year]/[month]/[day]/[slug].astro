@@ -2,7 +2,7 @@
 import BaseLayout from '../../../../layouts/BaseLayout.astro';
 import GalleryEmbed from '../../../../components/GalleryEmbed.astro';
 import { posts } from '../../../../lib/data';
-import { decodeHtml, formatDate, getExcerpt, getPostImage } from '../../../../lib/utils';
+import { decodeHtml, formatArticleContent, formatDate, getExcerpt, getPostImage } from '../../../../lib/utils';
 
 export function getStaticPaths() {
   return posts.map((post) => ({
@@ -20,6 +20,7 @@ const { post } = Astro.props;
 const title = decodeHtml(post.title);
 const category = post.categories[0];
 const image = getPostImage(post);
+const articleContent = post.content ? formatArticleContent(post.content) : '';
 ---
 
 <BaseLayout title={title} description={getExcerpt(post)} image={image ?? undefined} stickyHeader={false}>
@@ -37,8 +38,8 @@ const image = getPostImage(post);
         <GalleryEmbed html={gallery} />
       ))}
 
-      {post.content && (
-        <div class="article-content" set:html={post.content} />
+      {articleContent && (
+        <div class="article-content" set:html={articleContent} />
       )}
     </article>
   </div>
