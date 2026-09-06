@@ -13,6 +13,17 @@ export interface PostCategory {
   slug: string;
 }
 
+export interface GalleryImage {
+  src: string;
+  thumb: string;
+  alt?: string;
+}
+
+export interface LocalGallery {
+  title?: string;
+  images: GalleryImage[];
+}
+
 export interface PostMeta {
   id: number;
   title: string;
@@ -25,6 +36,7 @@ export interface PostMeta {
   link: string;
   excerpt: string;
   galleries: string[];
+  localGalleries?: LocalGallery[];
   featuredImage: string | null;
   categories: PostCategory[];
   categoryIds: number[];
