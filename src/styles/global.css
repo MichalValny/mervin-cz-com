@@ -22,8 +22,9 @@
   --radius: 10px;
   --radius-lg: 14px;
   --radius-pill: 999px;
-  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
-  --font-heading: 'Space Grotesk', system-ui, sans-serif;
+  --font-sans: 'Source Sans 3', system-ui, sans-serif;
+  --font-heading: 'Source Sans 3', system-ui, sans-serif;
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --max-width: 1200px;
   --content-width: 760px;
@@ -99,9 +100,9 @@ a:hover {
 
 h1, h2, h3, h4 {
   font-family: var(--font-heading);
-  line-height: 1.2;
+  line-height: 1.25;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .container {
@@ -462,11 +463,13 @@ body.header-static .site-header {
 }
 
 .post-card-meta {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
   color: var(--color-text-muted);
   margin-bottom: 0.55rem;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
 .post-card-excerpt {
@@ -502,22 +505,24 @@ body.header-static .site-header {
 .article-title {
   font-family: var(--font-heading);
   font-size: clamp(1.75rem, 4vw, 2.35rem);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   margin: 0 0 0.65rem;
 }
 
 .article-meta {
   color: var(--color-text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  letter-spacing: 0.02em;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
 .article-content {
-  font-family: var(--font-sans);
+  font-family: var(--font-serif);
   font-size: 1.0625rem;
-  line-height: 1.8;
+  line-height: 1.85;
   color: var(--color-text);
   text-align: left;
   hyphens: auto;
@@ -560,9 +565,10 @@ body.header-static .site-header {
 
 .article-content .article-day-heading {
   margin: 2rem 0 0.65rem;
-  font-family: var(--font-mono);
-  font-size: 0.92rem;
-  letter-spacing: 0.02em;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--color-text);
 }
 
@@ -592,15 +598,17 @@ body.header-static .site-header {
 
 .article-content .article-intro {
   margin: 0 0 1.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 500;
   color: var(--color-text-muted);
 }
 
 .article-content .article-photo-credit {
   margin-top: 2rem;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 0.9rem;
+  font-style: italic;
   color: var(--color-text-muted);
   text-align: right;
 }
