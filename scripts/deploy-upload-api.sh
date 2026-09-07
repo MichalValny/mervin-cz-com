@@ -37,8 +37,19 @@ require_cmd() {
 
 require_cmd aws
 require_cmd npm
-require_cmd zip
 require_cmd jq
+
+create_zip_archive() {
+  local archive_path="$1"
+  local source_dir="$2"
+  rm -f "$archive_path"
+  if command -v zip >/dev/null 2>&1; then
+    (cd "$source_dir" && zip -qr "$archive_path" .)
+    return
+  fi
+  echo "zip not found, using npx bestzip (Windows Git Bash friendly)…"
+  (cd "$source_dir" && npx --yes bestzip "$archive_path" .)
+}
 
 for var in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY UPLOAD_JWT_SECRET UPLOAD_PASSWORD_MICHAL UPLOAD_PASSWORD_HORAK UPLOAD_GITHUB_TOKEN; do
   if [[ -z "${!var:-}" ]]; then
@@ -116,7 +127,7 @@ build_lambda_package() {
   cat > "${PACKAGE_DIR}/index.mjs" <<'EOF'
 export { handler } from './handler.mjs';
 EOF
-  (cd "$PACKAGE_DIR" && zip -qr "${ROOT_DIR}/.upload-api.zip" .)
+  create_zip_archive "${ROOT_DIR}/.upload-api.zip" "$PACKAGE_DIR"
 }
 
 deploy_lambda() {
