@@ -20,7 +20,7 @@ V repozitáři **Settings → Secrets and variables → Actions**:
 | `UPLOAD_PASSWORD_MICHAL` | Vaše upload heslo |
 | `UPLOAD_PASSWORD_HORAK` | Heslo pro Hořáka |
 | `UPLOAD_JWT_SECRET` | Náhodný řetězec (např. `openssl rand -hex 32`) |
-| `GITHUB_UPLOAD_TOKEN` | GitHub PAT s oprávněním `repo` a `workflow` |
+| `UPLOAD_GITHUB_TOKEN` | GitHub PAT s oprávněním `repo` a `workflow` |
 
 Stávající `AWS_ACCESS_KEY_ID` a `AWS_SECRET_ACCESS_KEY` se používají i pro stažení fotek ze S3 ve workflow `process-upload.yml`.
 
@@ -42,7 +42,7 @@ Na stroji s nakonfigurovaným AWS CLI:
 export UPLOAD_JWT_SECRET='…'
 export UPLOAD_PASSWORD_MICHAL='…'
 export UPLOAD_PASSWORD_HORAK='…'
-export GITHUB_UPLOAD_TOKEN='ghp_…'
+export UPLOAD_GITHUB_TOKEN='ghp_…'
 bash scripts/deploy-upload-api.sh
 ```
 

@@ -15,7 +15,7 @@ export function getConfig() {
       Michal: process.env.UPLOAD_PASSWORD_MICHAL,
       Horak: process.env.UPLOAD_PASSWORD_HORAK,
     },
-    githubToken: process.env.GITHUB_UPLOAD_TOKEN,
+    githubToken: process.env.UPLOAD_GITHUB_TOKEN,
     githubRepo: process.env.GITHUB_UPLOAD_REPO ?? 'MichalValny/mervin-cz-com',
     githubWorkflow: process.env.GITHUB_UPLOAD_WORKFLOW ?? 'process-upload.yml',
     allowedOrigins,
@@ -29,6 +29,6 @@ export function validateConfig(config) {
   if (!config.jwtSecret) missing.push('UPLOAD_JWT_SECRET');
   if (!config.passwords.Michal) missing.push('UPLOAD_PASSWORD_MICHAL');
   if (!config.passwords.Horak) missing.push('UPLOAD_PASSWORD_HORAK');
-  if (!config.githubToken) missing.push('GITHUB_UPLOAD_TOKEN');
+  if (!config.githubToken) missing.push('UPLOAD_GITHUB_TOKEN');
   return missing;
 }
