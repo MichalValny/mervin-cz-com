@@ -38,6 +38,20 @@ require_cmd() {
 require_cmd aws
 require_cmd npm
 
+# Git Bash passes MSYS paths (/c/...) that the Windows AWS CLI cannot open.
+aws_file_uri() {
+  local path="$1"
+  if command -v cygpath >/dev/null 2>&1; then
+    path="$(cygpath -m "$path")"
+  elif [[ "$path" =~ ^/([a-zA-Z])/(.*)$ ]]; then
+    local drive="${BASH_REMATCH[1]}"
+    drive="$(printf '%s' "$drive" | tr '[:lower:]' '[:upper:]')"
+    path="${drive}:/${BASH_REMATCH[2]}"
+  fi
+  path="${path//\\//}"
+  printf 'fileb://%s' "$path"
+}
+
 build_lambda_env_json() {
   node <<'EOF'
 const payload = {
@@ -164,11 +178,12 @@ deploy_lambda() {
   build_lambda_package
   ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME}"
   ENV_JSON="$(build_lambda_env_json)"
+  ZIP_URI="$(aws_file_uri "${ROOT_DIR}/.upload-api.zip")"
 
   if aws lambda get-function --function-name "$FUNCTION_NAME" >/dev/null 2>&1; then
     aws lambda update-function-code \
       --function-name "$FUNCTION_NAME" \
-      --zip-file "fileb://${ROOT_DIR}/.upload-api.zip" >/dev/null
+      --zip-file "$ZIP_URI" >/dev/null
     aws lambda wait function-updated --function-name "$FUNCTION_NAME"
     aws lambda update-function-configuration \
       --function-name "$FUNCTION_NAME" \
@@ -185,7 +200,7 @@ deploy_lambda() {
       --handler index.handler \
       --timeout 30 \
       --memory-size 512 \
-      --zip-file "fileb://${ROOT_DIR}/.upload-api.zip" \
+      --zip-file "$ZIP_URI" \
       --environment "$ENV_JSON" >/dev/null
   fi
 }
