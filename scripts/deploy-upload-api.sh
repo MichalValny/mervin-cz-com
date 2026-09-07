@@ -9,7 +9,7 @@ set -euo pipefail
 #   UPLOAD_JWT_SECRET
 #   UPLOAD_PASSWORD_MICHAL
 #   UPLOAD_PASSWORD_HORAK
-#   GITHUB_UPLOAD_TOKEN
+#   UPLOAD_GITHUB_TOKEN
 #
 # Optional:
 #   AWS_REGION (default: us-east-1)
@@ -40,7 +40,7 @@ require_cmd npm
 require_cmd zip
 require_cmd jq
 
-for var in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY UPLOAD_JWT_SECRET UPLOAD_PASSWORD_MICHAL UPLOAD_PASSWORD_HORAK GITHUB_UPLOAD_TOKEN; do
+for var in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY UPLOAD_JWT_SECRET UPLOAD_PASSWORD_MICHAL UPLOAD_PASSWORD_HORAK UPLOAD_GITHUB_TOKEN; do
   if [[ -z "${!var:-}" ]]; then
     echo "Missing required environment variable: $var" >&2
     exit 1
@@ -126,7 +126,7 @@ deploy_lambda() {
     --arg jwt "$UPLOAD_JWT_SECRET" \
     --arg michal "$UPLOAD_PASSWORD_MICHAL" \
     --arg horak "$UPLOAD_PASSWORD_HORAK" \
-    --arg github "$GITHUB_UPLOAD_TOKEN" \
+    --arg github "$UPLOAD_GITHUB_TOKEN" \
     --arg repo "$GITHUB_UPLOAD_REPO" \
     --arg bucket "$UPLOAD_S3_BUCKET" \
     --arg prefix "$UPLOAD_S3_PREFIX" \
@@ -135,7 +135,7 @@ deploy_lambda() {
         UPLOAD_JWT_SECRET: $jwt,
         UPLOAD_PASSWORD_MICHAL: $michal,
         UPLOAD_PASSWORD_HORAK: $horak,
-        GITHUB_UPLOAD_TOKEN: $github,
+        UPLOAD_GITHUB_TOKEN: $github,
         GITHUB_UPLOAD_REPO: $repo,
         UPLOAD_S3_BUCKET: $bucket,
         UPLOAD_S3_PREFIX: $prefix
@@ -252,6 +252,6 @@ Required GitHub secrets (if not already set):
   UPLOAD_PASSWORD_MICHAL
   UPLOAD_PASSWORD_HORAK
   UPLOAD_JWT_SECRET
-  GITHUB_UPLOAD_TOKEN
+  UPLOAD_GITHUB_TOKEN
 
 EOF
