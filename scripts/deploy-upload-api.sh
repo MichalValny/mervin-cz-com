@@ -37,7 +37,37 @@ require_cmd() {
 
 require_cmd aws
 require_cmd npm
-require_cmd jq
+
+build_lambda_env_json() {
+  node <<'EOF'
+const payload = {
+  Variables: {
+    UPLOAD_JWT_SECRET: process.env.UPLOAD_JWT_SECRET,
+    UPLOAD_PASSWORD_MICHAL: process.env.UPLOAD_PASSWORD_MICHAL,
+    UPLOAD_PASSWORD_HORAK: process.env.UPLOAD_PASSWORD_HORAK,
+    UPLOAD_GITHUB_TOKEN: process.env.UPLOAD_GITHUB_TOKEN,
+    GITHUB_UPLOAD_REPO: process.env.GITHUB_UPLOAD_REPO,
+    UPLOAD_S3_BUCKET: process.env.UPLOAD_S3_BUCKET,
+    UPLOAD_S3_PREFIX: process.env.UPLOAD_S3_PREFIX,
+  },
+};
+process.stdout.write(JSON.stringify(payload));
+EOF
+}
+
+write_state_file() {
+  local api_id="$1"
+  local api_endpoint="$2"
+  node -e "const fs=require('fs'); fs.writeFileSync(process.argv[1], JSON.stringify({ apiId: process.argv[2], apiEndpoint: process.argv[3] }, null, 2));" \
+    "$STATE_FILE" "$api_id" "$api_endpoint"
+}
+
+read_state_api_id() {
+  if [[ ! -f "$STATE_FILE" ]]; then
+    return
+  fi
+  node -e "try { const data = JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8')); process.stdout.write(data.apiId || ''); } catch {}" "$STATE_FILE"
+}
 
 create_zip_archive() {
   local archive_path="$1"
@@ -133,25 +163,7 @@ EOF
 deploy_lambda() {
   build_lambda_package
   ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME}"
-  ENV_JSON="$(jq -n \
-    --arg jwt "$UPLOAD_JWT_SECRET" \
-    --arg michal "$UPLOAD_PASSWORD_MICHAL" \
-    --arg horak "$UPLOAD_PASSWORD_HORAK" \
-    --arg github "$UPLOAD_GITHUB_TOKEN" \
-    --arg repo "$GITHUB_UPLOAD_REPO" \
-    --arg bucket "$UPLOAD_S3_BUCKET" \
-    --arg prefix "$UPLOAD_S3_PREFIX" \
-    '{
-      Variables: {
-        UPLOAD_JWT_SECRET: $jwt,
-        UPLOAD_PASSWORD_MICHAL: $michal,
-        UPLOAD_PASSWORD_HORAK: $horak,
-        UPLOAD_GITHUB_TOKEN: $github,
-        GITHUB_UPLOAD_REPO: $repo,
-        UPLOAD_S3_BUCKET: $bucket,
-        UPLOAD_S3_PREFIX: $prefix
-      }
-    }')"
+  ENV_JSON="$(build_lambda_env_json)"
 
   if aws lambda get-function --function-name "$FUNCTION_NAME" >/dev/null 2>&1; then
     aws lambda update-function-code \
@@ -182,7 +194,7 @@ ensure_http_api() {
   local api_id function_arn integration_id route_id
 
   if [[ -f "$STATE_FILE" ]]; then
-    api_id="$(jq -r '.apiId // empty' "$STATE_FILE")"
+    api_id="$(read_state_api_id)"
   else
     api_id=""
   fi
@@ -238,10 +250,7 @@ ensure_http_api() {
     >/dev/null 2>&1 || true
 
   api_endpoint="$(aws apigatewayv2 get-api --api-id "$api_id" --query 'ApiEndpoint' --output text)"
-  jq -n \
-    --arg apiId "$api_id" \
-    --arg apiEndpoint "$api_endpoint" \
-    '{apiId:$apiId, apiEndpoint:$apiEndpoint}' > "$STATE_FILE"
+  write_state_file "$api_id" "$api_endpoint"
 
   echo "$api_endpoint"
 }
