@@ -106,6 +106,7 @@ export const mainNav: NavItem[] = [
       })),
     ],
   },
+  { label: 'Upload', href: '/upload/' },
 ];
 
 export const featuredSections = [

@@ -1,0 +1,11 @@
+{
+  "name": "mervin-upload-api",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.758.0",
+    "@aws-sdk/s3-request-presigner": "^3.758.0",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

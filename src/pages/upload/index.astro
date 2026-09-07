@@ -1,0 +1,363 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { site } from '../../lib/data';
+import { uploadCategories } from '../../lib/upload-categories';
+
+const apiBase = import.meta.env.PUBLIC_UPLOAD_API_URL ?? '';
+---
+
+<BaseLayout title="Upload" description="Nahrání nového příspěvku na mervin-cz." stickyHeader={false}>
+  <div class="container page-layout page-layout--narrow">
+    <section class="upload-page" data-api-base={apiBase}>
+      <div class="upload-panel upload-panel--login" id="upload-login-panel">
+        <div class="upload-brand">
+          <img src={site.logo} alt={site.siteName} class="upload-logo" width="528" height="133" />
+          <p class="upload-lead">Přihlaste se pro nahrání nového příspěvku.</p>
+        </div>
+
+        <form class="upload-form" id="upload-login-form">
+          <label class="upload-field">
+            <span>Jméno</span>
+            <input type="text" name="username" autocomplete="username" required />
+          </label>
+          <label class="upload-field">
+            <span>Heslo</span>
+            <input type="password" name="password" autocomplete="current-password" required />
+          </label>
+          <p class="upload-error" id="upload-login-error" hidden></p>
+          <button type="submit" class="upload-button">Přihlásit</button>
+        </form>
+      </div>
+
+      <div class="upload-panel upload-panel--editor" id="upload-editor-panel" hidden>
+        <div class="upload-brand upload-brand--compact">
+          <img src={site.logo} alt={site.siteName} class="upload-logo upload-logo--compact" width="528" height="133" />
+          <p class="upload-user" id="upload-user-label"></p>
+        </div>
+
+        <form class="upload-form" id="upload-submit-form">
+          <label class="upload-field">
+            <span>Nadpis článku</span>
+            <input type="text" name="title" required minlength="3" maxlength="160" />
+          </label>
+
+          <label class="upload-field">
+            <span>Rubrika</span>
+            <select name="categorySlug" required>
+              <option value="">Vyberte rubriku…</option>
+              {uploadCategories.map((category) => (
+                <option value={category.slug}>{category.name}</option>
+              ))}
+            </select>
+          </label>
+
+          <label class="upload-field">
+            <span>Datum</span>
+            <input type="date" name="date" required />
+          </label>
+
+          <label class="upload-field">
+            <span>Popisek galerie</span>
+            <input type="text" name="galleryTitle" maxlength="160" placeholder="Volitelné – jinak se použije nadpis" />
+          </label>
+
+          <label class="upload-field">
+            <span>Text článku</span>
+            <textarea name="text" rows="12" required placeholder="Napište text po odstavcích. Prázdný řádek = nový odstavec."></textarea>
+          </label>
+
+          <div class="upload-field">
+            <span>Fotografie</span>
+            <div class="upload-dropzone" id="upload-dropzone">
+              <input type="file" id="upload-files" name="files" accept="image/*" multiple />
+              <p>Přetáhněte fotky sem nebo klepněte pro výběr.</p>
+              <p class="upload-dropzone-hint">Podporované formáty: JPG, PNG, WEBP, HEIC</p>
+            </div>
+            <ul class="upload-file-list" id="upload-file-list"></ul>
+          </div>
+
+          <p class="upload-status" id="upload-status" hidden></p>
+          <p class="upload-error" id="upload-submit-error" hidden></p>
+
+          <div class="upload-actions">
+            <button type="button" class="upload-button upload-button--ghost" id="upload-logout">Odhlásit</button>
+            <button type="submit" class="upload-button" id="upload-submit">Odeslat ke schválení</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="upload-panel upload-panel--success" id="upload-success-panel" hidden>
+        <h2>Příspěvek odeslán</h2>
+        <p id="upload-success-message">Děkujeme. Po schválení se článek objeví na webu.</p>
+        <button type="button" class="upload-button" id="upload-new">Odeslat další příspěvek</button>
+      </div>
+
+      {!apiBase && (
+        <p class="upload-config-warning">
+          Upload API zatím není nakonfigurované. Nastavte proměnnou <code>PUBLIC_UPLOAD_API_URL</code>.
+        </p>
+      )}
+    </section>
+  </div>
+
+  <script>
+    const TOKEN_KEY = 'mervin-upload-token';
+    const USER_KEY = 'mervin-upload-user';
+
+    const page = document.querySelector('.upload-page');
+    const apiBase = page?.getAttribute('data-api-base') ?? '';
+
+    const loginPanel = document.getElementById('upload-login-panel');
+    const editorPanel = document.getElementById('upload-editor-panel');
+    const successPanel = document.getElementById('upload-success-panel');
+    const loginForm = document.getElementById('upload-login-form');
+    const submitForm = document.getElementById('upload-submit-form');
+    const loginError = document.getElementById('upload-login-error');
+    const submitError = document.getElementById('upload-submit-error');
+    const statusEl = document.getElementById('upload-status');
+    const userLabel = document.getElementById('upload-user-label');
+    const fileInput = document.getElementById('upload-files');
+    const fileList = document.getElementById('upload-file-list');
+    const dropzone = document.getElementById('upload-dropzone');
+    const logoutBtn = document.getElementById('upload-logout');
+    const newBtn = document.getElementById('upload-new');
+    const successMessage = document.getElementById('upload-success-message');
+
+    let selectedFiles = [];
+
+    function getToken() {
+      return localStorage.getItem(TOKEN_KEY);
+    }
+
+    function setSession(token, username) {
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(USER_KEY, username);
+    }
+
+    function clearSession() {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+    }
+
+    function showPanel(name) {
+      loginPanel.hidden = name !== 'login';
+      editorPanel.hidden = name !== 'editor';
+      successPanel.hidden = name !== 'success';
+    }
+
+    function showError(el, message) {
+      if (!el) return;
+      if (!message) {
+        el.hidden = true;
+        el.textContent = '';
+        return;
+      }
+      el.hidden = false;
+      el.textContent = message;
+    }
+
+    function renderFiles() {
+      if (!fileList) return;
+      fileList.innerHTML = '';
+      selectedFiles.forEach((file, index) => {
+        const item = document.createElement('li');
+        item.textContent = `${index + 1}. ${file.name} (${Math.round(file.size / 1024)} KB)`;
+        fileList.appendChild(item);
+      });
+    }
+
+    function setFiles(fileListLike) {
+      selectedFiles = [...fileListLike];
+      renderFiles();
+    }
+
+    async function apiRequest(path, options = {}) {
+      if (!apiBase) {
+        throw new Error('Upload API není nakonfigurované.');
+      }
+      const headers = new Headers(options.headers ?? {});
+      if (options.token) {
+        headers.set('Authorization', `Bearer ${options.token}`);
+      }
+      if (options.body && !(options.body instanceof FormData)) {
+        headers.set('Content-Type', 'application/json');
+      }
+      const response = await fetch(`${apiBase}${path}`, {
+        ...options,
+        headers,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error ?? 'Požadavek selhal.');
+      }
+      return data;
+    }
+
+    async function restoreSession() {
+      const token = getToken();
+      const username = localStorage.getItem(USER_KEY);
+      if (!token || !username || !apiBase) {
+        showPanel('login');
+        return;
+      }
+      try {
+        await apiRequest('/me', { token, method: 'GET' });
+        userLabel.textContent = `Přihlášen jako ${username}`;
+        showPanel('editor');
+      } catch {
+        clearSession();
+        showPanel('login');
+      }
+    }
+
+    loginForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      showError(loginError, '');
+      const form = event.currentTarget;
+      if (!(form instanceof HTMLFormElement)) return;
+      const data = new FormData(form);
+      try {
+        const result = await apiRequest('/login', {
+          method: 'POST',
+          body: JSON.stringify({
+            username: String(data.get('username') ?? '').trim(),
+            password: String(data.get('password') ?? ''),
+          }),
+        });
+        setSession(result.token, result.username);
+        userLabel.textContent = `Přihlášen jako ${result.username}`;
+        form.reset();
+        showPanel('editor');
+      } catch (error) {
+        showError(loginError, error instanceof Error ? error.message : 'Přihlášení selhalo.');
+      }
+    });
+
+    fileInput?.addEventListener('change', () => {
+      if (!(fileInput instanceof HTMLInputElement) || !fileInput.files) return;
+      setFiles(fileInput.files);
+    });
+
+    dropzone?.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      dropzone.classList.add('is-dragover');
+    });
+
+    dropzone?.addEventListener('dragleave', () => {
+      dropzone.classList.remove('is-dragover');
+    });
+
+    dropzone?.addEventListener('drop', (event) => {
+      event.preventDefault();
+      dropzone.classList.remove('is-dragover');
+      if (!event.dataTransfer?.files?.length) return;
+      setFiles(event.dataTransfer.files);
+    });
+
+    dropzone?.addEventListener('click', () => {
+      fileInput?.click();
+    });
+
+    logoutBtn?.addEventListener('click', () => {
+      clearSession();
+      selectedFiles = [];
+      renderFiles();
+      submitForm?.reset();
+      showPanel('login');
+    });
+
+    newBtn?.addEventListener('click', () => {
+      selectedFiles = [];
+      renderFiles();
+      submitForm?.reset();
+      showError(submitError, '');
+      statusEl.hidden = true;
+      showPanel('editor');
+    });
+
+    submitForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      showError(submitError, '');
+      statusEl.hidden = false;
+      statusEl.textContent = 'Připravuji upload…';
+
+      const token = getToken();
+      if (!token) {
+        showPanel('login');
+        return;
+      }
+
+      const form = event.currentTarget;
+      if (!(form instanceof HTMLFormElement)) return;
+      const data = new FormData(form);
+
+      if (selectedFiles.length === 0) {
+        showError(submitError, 'Přidejte alespoň jednu fotografii.');
+        statusEl.hidden = true;
+        return;
+      }
+
+      const submitButton = document.getElementById('upload-submit');
+      if (submitButton instanceof HTMLButtonElement) {
+        submitButton.disabled = true;
+      }
+
+      try {
+        const payload = {
+          title: String(data.get('title') ?? '').trim(),
+          categorySlug: String(data.get('categorySlug') ?? '').trim(),
+          date: String(data.get('date') ?? '').trim(),
+          text: String(data.get('text') ?? '').trim(),
+          galleryTitle: String(data.get('galleryTitle') ?? '').trim(),
+          files: selectedFiles.map((file) => ({
+            name: file.name,
+            size: file.size,
+            type: file.type,
+          })),
+        };
+
+        statusEl.textContent = 'Získávám adresy pro nahrání fotek…';
+        const prepared = await apiRequest('/prepare', {
+          method: 'POST',
+          token,
+          body: JSON.stringify(payload),
+        });
+
+        for (let index = 0; index < prepared.uploads.length; index += 1) {
+          const upload = prepared.uploads[index];
+          const file = selectedFiles[index];
+          statusEl.textContent = `Nahrávám fotografie (${index + 1}/${prepared.uploads.length})…`;
+          const putResponse = await fetch(upload.url, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': upload.contentType,
+            },
+            body: file,
+          });
+          if (!putResponse.ok) {
+            throw new Error(`Nahrání souboru ${file.name} selhalo.`);
+          }
+        }
+
+        statusEl.textContent = 'Odesílám ke schválení…';
+        const completed = await apiRequest('/complete', {
+          method: 'POST',
+          token,
+          body: JSON.stringify({ uploadId: prepared.uploadId }),
+        });
+
+        successMessage.textContent = completed.message ?? 'Příspěvek byl odeslán ke schválení.';
+        showPanel('success');
+      } catch (error) {
+        showError(submitError, error instanceof Error ? error.message : 'Upload selhal.');
+        statusEl.hidden = true;
+      } finally {
+        if (submitButton instanceof HTMLButtonElement) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+
+    restoreSession();
+  </script>
+</BaseLayout>

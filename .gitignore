@@ -2,6 +2,10 @@ node_modules/
 dist/
 .astro/
 .aws-deploy/
+.upload-api-package/
+.upload-api.zip
+.upload-staging/
+upload-api/node_modules/
 .DS_Store
 *.log
 .env
