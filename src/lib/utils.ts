@@ -93,8 +93,8 @@ export function getExcerpt(post: { excerpt: string; content: string }, maxLength
 }
 
 function cleanParagraphInner(html: string): string {
-  return html
-    .replace(/&nbsp;/gi, ' ')
+  return decodeHtml(html)
+    .replace(/\u00a0/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -124,12 +124,16 @@ function isDayHeading(text: string): boolean {
 }
 
 function isTripDateLine(text: string): boolean {
-  return /^\d{1,2}-\d{1,2}\.\s*\d{0,2}\.?\s*\d{4}$/.test(text.replace(/\u00a0/g, ' ').trim());
+  const normalized = text.replace(/\u00a0/g, ' ').trim();
+  return (
+    /^\d{1,2}(?:\.\s*)?[–—-]\s*\d{1,2}\.\s*\d{0,2}\.?\s*\d{4}$/.test(normalized)
+    || /^\d{1,2}-\d{1,2}\.\s*\d{0,2}\.?\s*\d{4}$/.test(normalized)
+  );
 }
 
 function isExcuseLine(text: string): boolean {
   const plain = stripHtml(text).trim();
-  const match = plain.match(/^(.+?)-([a-záčďéěíňóřšťúůýž].+)$/);
+  const match = plain.match(/^([^–—-]+)[–—-]\s*([a-záčďéěíňóřšťúůýž].+)$/);
   if (!match) {
     return false;
   }
@@ -139,11 +143,11 @@ function isExcuseLine(text: string): boolean {
 
 function formatExcuseParagraph(inner: string): string {
   const cleaned = cleanParagraphInner(inner);
-  const match = cleaned.match(/^(.+?)-([a-záčďéěíňóřšťúůýž].+)$/);
+  const match = cleaned.match(/^([^–—-]+)([–—-])\s*([a-záčďéěíňóřšťúůýž].+)$/);
   if (!match) {
     return `<p>${cleaned}</p>`;
   }
-  return `<p class="article-entry"><strong class="article-entry-label">${match[1]}</strong>–${match[2]}</p>`;
+  return `<p class="article-entry"><strong class="article-entry-label">${match[1].trim()}</strong>${match[2]} ${match[3]}</p>`;
 }
 
 function mergeRiderParagraphs(html: string): string {
@@ -197,10 +201,16 @@ function markDiaryBetweenDayHeadings(html: string): string {
       return section;
     }
 
-    return section.replace(/<p>([^<]+)<\/p>/g, (_match, inner: string) => {
+    const h2Index = section.search(/<h2[\s>]/i);
+    const diaryPart = h2Index === -1 ? section : section.slice(0, h2Index);
+    const restPart = h2Index === -1 ? '' : section.slice(h2Index);
+
+    const marked = diaryPart.replace(/<p>([^<]+)<\/p>/g, (_match, inner: string) => {
       const cleaned = cleanParagraphInner(inner);
       return cleaned ? `<p class="article-diary">${cleaned}</p>` : '';
     });
+
+    return `${marked}${restPart}`;
   }).join('');
 }
 
@@ -269,6 +279,9 @@ export function formatArticleContent(html: string): string {
     const cleanLabel = cleanParagraphInner(label);
     if (isDayHeading(cleanLabel)) {
       return `<p class="article-day-heading"><strong>${cleanLabel}</strong></p>`;
+    }
+    if (isTripDateLine(cleanLabel)) {
+      return `<p class="article-intro">${cleanLabel}</p>`;
     }
     return `<p class="article-section-label"><strong>${cleanLabel}</strong></p>`;
   });
