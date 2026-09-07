@@ -12,7 +12,7 @@
     "name": "Cestování",
     "slug": "cestovani",
     "parent": 26,
-    "count": 32,
+    "count": 33,
     "link": "https://www.mervin-cz.com/category/ostatni/cestovani/"
   },
   {
@@ -78,14 +78,6 @@
     "parent": 26,
     "count": 4,
     "link": "https://www.mervin-cz.com/category/ostatni/podzimni-sklepy/"
-  },
-  {
-    "id": 1,
-    "name": "Uncategorized",
-    "slug": "uncategorized",
-    "parent": 26,
-    "count": 4,
-    "link": "https://www.mervin-cz.com/category/ostatni/uncategorized/"
   },
   {
     "id": 28,
