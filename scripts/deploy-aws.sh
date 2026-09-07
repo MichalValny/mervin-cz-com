@@ -44,6 +44,7 @@ export AWS_DEFAULT_REGION="$AWS_REGION"
 export AWS_REGION
 
 echo "==> Building site"
+export PUBLIC_UPLOAD_API_URL="${PUBLIC_UPLOAD_API_URL:-}"
 npm run build
 
 echo "==> Ensuring S3 bucket s3://${S3_BUCKET} exists in ${AWS_REGION}"

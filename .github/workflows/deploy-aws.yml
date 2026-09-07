@@ -37,6 +37,7 @@ jobs:
           S3_BUCKET: mervin-cz-com
           ACM_CERTIFICATE_ARN: ${{ vars.ACM_CERTIFICATE_ARN }}
           CLOUDFRONT_ALIASES: ${{ vars.CLOUDFRONT_ALIASES }}
+          PUBLIC_UPLOAD_API_URL: ${{ vars.PUBLIC_UPLOAD_API_URL }}
         run: |
           chmod +x scripts/deploy-aws.sh
           ./scripts/deploy-aws.sh

@@ -1,0 +1,77 @@
+name: Process upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload_id:
+        description: Upload bundle ID in S3
+        required: true
+        type: string
+      author:
+        description: Upload author username
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: pip install pillow pillow-heif boto3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+      - name: Build post files from upload
+        id: build
+        env:
+          UPLOAD_S3_BUCKET: ${{ vars.UPLOAD_S3_BUCKET || 'mervin-cz-com' }}
+          UPLOAD_S3_PREFIX: ${{ vars.UPLOAD_S3_PREFIX || 'uploads-staging' }}
+        run: |
+          python3 scripts/process-upload.py "${{ inputs.upload_id }}" > upload-result.json
+          cat upload-result.json
+          echo "result<<EOF" >> "$GITHUB_OUTPUT"
+          cat upload-result.json >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Create pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SLUG="$(jq -r '.slug' upload-result.json)"
+          TITLE="$(jq -r '.title' upload-result.json)"
+          BRANCH="upload/${SLUG}-${{ inputs.upload_id }}"
+          git lfs install
+          git checkout -b "$BRANCH"
+          git add src/data/posts.json src/content/posts public/galleries
+          git -c user.name='Mervin Upload Bot' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m "Upload: ${TITLE} (${{ inputs.author }})"
+          git push origin "$BRANCH"
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "Upload: ${TITLE}" \
+            --body "$(cat <<EOF
+Automatický upload od **${{ inputs.author }}**.
+
+Upload ID: \`${{ inputs.upload_id }}\`
+
+Po kontrole prosím sloučte tento PR. Deploy proběhne automaticky.
+EOF
+)"
