@@ -273,6 +273,7 @@ ensure_http_api() {
   api_endpoint="$(aws apigatewayv2 get-api --api-id "$api_id" --query 'ApiEndpoint' --output text)"
   write_state_file "$api_id" "$api_endpoint"
 
+  echo "API ID: ${api_id}" >&2
   echo "$api_endpoint"
 }
 
@@ -287,10 +288,11 @@ Upload API deployed.
 
 API base URL: ${API_URL}
 
-Optional GitHub repository variable (overrides src/data/upload-api.json):
+Copy the URL exactly as printed above into GitHub variable:
   PUBLIC_UPLOAD_API_URL=${API_URL}
 
-Commit and push src/data/upload-api.json, or set the variable above and redeploy the site.
+Or run: bash scripts/sync-upload-api-url.sh
+Commit and push src/data/upload-api.json, then redeploy the site.
 
 Required GitHub secrets (if not already set):
   UPLOAD_PASSWORD_MICHAL
