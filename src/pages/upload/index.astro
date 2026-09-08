@@ -2,9 +2,9 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { site } from '../../lib/data';
 import { uploadCategories } from '../../lib/upload-categories';
-import uploadApiJson from '../../data/upload-api.json';
+import { resolveUploadApiUrl } from '../../lib/upload-api';
 
-const apiBase = import.meta.env.PUBLIC_UPLOAD_API_URL || uploadApiJson.apiUrl || '';
+const apiBase = resolveUploadApiUrl();
 ---
 
 <BaseLayout title="Upload" description="Nahrání nového příspěvku na mervin-cz." stickyHeader={false}>
@@ -183,10 +183,17 @@ const apiBase = import.meta.env.PUBLIC_UPLOAD_API_URL || uploadApiJson.apiUrl ||
       if (options.body && !(options.body instanceof FormData)) {
         headers.set('Content-Type', 'application/json');
       }
-      const response = await fetch(`${apiBase}${path}`, {
-        ...options,
-        headers,
-      });
+      let response;
+      try {
+        response = await fetch(`${apiBase}${path}`, {
+          ...options,
+          headers,
+        });
+      } catch {
+        throw new Error(
+          `Nepodařilo se spojit s upload API (${apiBase}). Zkontrolujte adresu – správné ID je nit731l5mc (písmeno l, ne číslice 1).`
+        );
+      }
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         throw new Error(data.error ?? 'Požadavek selhal.');

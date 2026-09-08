@@ -2,7 +2,7 @@ const DEFAULT_MAX_FILES = 100;
 const DEFAULT_MAX_FILE_BYTES = 15 * 1024 * 1024;
 
 export function getConfig() {
-  const allowedOrigins = (process.env.UPLOAD_ALLOWED_ORIGINS ?? 'https://www.mervin-cz.com,https://d3k6t1hocigyks.cloudfront.net,http://localhost:4321')
+  const allowedOrigins = (process.env.UPLOAD_ALLOWED_ORIGINS ?? 'https://www.mervin-cz.com,https://mervin-cz.com,https://d3k6t1hocigyks.cloudfront.net,http://localhost:4321')
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
