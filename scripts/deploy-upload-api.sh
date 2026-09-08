@@ -76,6 +76,12 @@ write_state_file() {
     "$STATE_FILE" "$api_id" "$api_endpoint"
 }
 
+write_upload_api_config() {
+  local api_url="$1"
+  node -e "const fs=require('fs'); fs.writeFileSync('src/data/upload-api.json', JSON.stringify({ apiUrl: process.argv[1] }, null, 2) + '\n');" "$api_url"
+  echo "Updated src/data/upload-api.json"
+}
+
 read_state_api_id() {
   if [[ ! -f "$STATE_FILE" ]]; then
     return
@@ -273,6 +279,7 @@ ensure_http_api() {
 ensure_lambda_role
 deploy_lambda
 API_URL="$(ensure_http_api)"
+write_upload_api_config "$API_URL"
 
 cat <<EOF
 
@@ -280,8 +287,10 @@ Upload API deployed.
 
 API base URL: ${API_URL}
 
-Set GitHub repository variable:
+Optional GitHub repository variable (overrides src/data/upload-api.json):
   PUBLIC_UPLOAD_API_URL=${API_URL}
+
+Commit and push src/data/upload-api.json, or set the variable above and redeploy the site.
 
 Required GitHub secrets (if not already set):
   UPLOAD_PASSWORD_MICHAL
