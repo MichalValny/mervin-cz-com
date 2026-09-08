@@ -191,7 +191,7 @@ const apiBase = resolveUploadApiUrl();
         });
       } catch {
         throw new Error(
-          `Nepodařilo se spojit s upload API (${apiBase}). Zkontrolujte adresu – správné ID je nit731l5mc (písmeno l, ne číslice 1).`
+          `Nepodařilo se spojit s upload API (${apiBase}). Spusťte bash scripts/sync-upload-api-url.sh a aktualizujte PUBLIC_UPLOAD_API_URL.`
         );
       }
       const data = await response.json().catch(() => ({}));
