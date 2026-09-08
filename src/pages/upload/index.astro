@@ -2,8 +2,9 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { site } from '../../lib/data';
 import { uploadCategories } from '../../lib/upload-categories';
+import uploadApiJson from '../../data/upload-api.json';
 
-const apiBase = import.meta.env.PUBLIC_UPLOAD_API_URL ?? '';
+const apiBase = import.meta.env.PUBLIC_UPLOAD_API_URL || uploadApiJson.apiUrl || '';
 ---
 
 <BaseLayout title="Upload" description="Nahrání nového příspěvku na mervin-cz." stickyHeader={false}>

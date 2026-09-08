@@ -30,7 +30,7 @@ Stávající `AWS_ACCESS_KEY_ID` a `AWS_SECRET_ACCESS_KEY` se používají i pro
 
 | Variable | Příklad |
 |----------|---------|
-| `PUBLIC_UPLOAD_API_URL` | `https://abc123.execute-api.us-east-1.amazonaws.com` |
+| `PUBLIC_UPLOAD_API_URL` | `https://abc123.execute-api.us-east-1.amazonaws.com` (volitelné – přepíše `src/data/upload-api.json`) |
 | `UPLOAD_S3_BUCKET` | `mervin-cz-com` (volitelné) |
 | `UPLOAD_S3_PREFIX` | `uploads-staging` (volitelné) |
 
@@ -113,11 +113,11 @@ export AWS_SECRET_ACCESS_KEY='…'
 bash scripts/deploy-upload-api.sh
 ```
 
-Skript vytvoří Lambda + HTTP API a vypíše URL. Tu vložte do `PUBLIC_UPLOAD_API_URL`.
+Skript vytvoří Lambda + HTTP API, aktualizuje `src/data/upload-api.json` a vypíše URL. Soubor commitněte a pushněte do `main`, nebo nastavte `PUBLIC_UPLOAD_API_URL` v GitHub Variables.
 
 ## 5. Nasazení webu
 
-Po nastavení `PUBLIC_UPLOAD_API_URL` pushněte do `main` – deploy workflow sestaví stránku `/upload/` s odkazem na API.
+Po aktualizaci `src/data/upload-api.json` (nebo nastavení `PUBLIC_UPLOAD_API_URL`) pushněte do `main` – deploy workflow sestaví stránku `/upload/` s odkazem na API.
 
 ## Tok dat
 

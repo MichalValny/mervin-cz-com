@@ -45,6 +45,11 @@ export AWS_REGION
 
 echo "==> Building site"
 export PUBLIC_UPLOAD_API_URL="${PUBLIC_UPLOAD_API_URL:-}"
+if [[ -n "$PUBLIC_UPLOAD_API_URL" ]]; then
+  echo "Upload API URL: ${PUBLIC_UPLOAD_API_URL} (from environment)"
+else
+  echo "Upload API URL: using src/data/upload-api.json fallback"
+fi
 npm run build
 
 echo "==> Ensuring S3 bucket s3://${S3_BUCKET} exists in ${AWS_REGION}"
