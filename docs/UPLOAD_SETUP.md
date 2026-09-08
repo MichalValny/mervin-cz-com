@@ -30,7 +30,11 @@ Stávající `AWS_ACCESS_KEY_ID` a `AWS_SECRET_ACCESS_KEY` se používají i pro
 
 | Variable | Příklad |
 |----------|---------|
-| `PUBLIC_UPLOAD_API_URL` | `https://abc123.execute-api.us-east-1.amazonaws.com` (volitelné – přepíše `src/data/upload-api.json`) |
+| `PUBLIC_UPLOAD_API_URL` | volitelné – přepíše `src/data/upload-api.json` jen pokud soubor chybí nebo je neplatný |
+
+**Pozor na překlep v API ID:** správná adresa obsahuje `731l5` (písmeno **l** a číslo **5**), ne `73115` (dvě jedničky). Příklad:
+
+`https://nit731l5mc.execute-api.us-east-1.amazonaws.com`
 | `UPLOAD_S3_BUCKET` | `mervin-cz-com` (volitelné) |
 | `UPLOAD_S3_PREFIX` | `uploads-staging` (volitelné) |
 
