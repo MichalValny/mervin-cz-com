@@ -1,0 +1,55 @@
+name: Refresh Instagram feed
+
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch Instagram posts
+        run: python3 scripts/fetch-instagram.py
+
+      - name: Commit updated feed
+        id: commit
+        run: |
+          git add src/data/instagram.json public/instagram/
+          if git diff --staged --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No Instagram changes to commit."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Refresh Instagram feed"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy to AWS
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+          S3_BUCKET: mervin-cz-com
+          ACM_CERTIFICATE_ARN: ${{ vars.ACM_CERTIFICATE_ARN }}
+          CLOUDFRONT_ALIASES: ${{ vars.CLOUDFRONT_ALIASES }}
+          PUBLIC_UPLOAD_API_URL: ${{ vars.PUBLIC_UPLOAD_API_URL }}
+        run: |
+          chmod +x scripts/deploy-aws.sh
+          ./scripts/deploy-aws.sh
