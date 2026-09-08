@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import mimetypes
 import os
 import sys
 import urllib.error
@@ -14,16 +15,18 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "src" / "data" / "instagram.json"
+IMAGE_DIR = ROOT / "public" / "instagram"
 LIMIT = 6
 WP_ACCOUNT_ID = "28316371414628054"
 DEFAULT_USERNAME = "mervinczcom"
 DEFAULT_PROFILE_URL = "https://www.instagram.com/mervinczcom/"
+USER_AGENT = "mervin-cz-com/2.0 (+https://www.mervin-cz.com)"
 
 
 def fetch_json(url: str) -> dict:
     request = urllib.request.Request(
         url,
-        headers={"User-Agent": "mervin-cz-com/2.0 (+https://www.mervin-cz.com)"},
+        headers={"User-Agent": USER_AGENT},
     )
     with urllib.request.urlopen(request, timeout=30) as response:
         return json.load(response)
@@ -36,6 +39,61 @@ def normalize_post(post_id: str, permalink: str, image_url: str, media_type: str
         "imageUrl": image_url,
         "mediaType": media_type,
     }
+
+
+def extension_for(content_type: str | None, fallback_url: str) -> str:
+    if content_type:
+        guessed = mimetypes.guess_extension(content_type.split(";", 1)[0].strip())
+        if guessed:
+            return guessed
+    path = urllib.parse.urlparse(fallback_url).path
+    suffix = Path(path).suffix.lower()
+    if suffix in {".jpg", ".jpeg", ".png", ".webp"}:
+        return suffix
+    return ".jpg"
+
+
+def download_image(url: str, destination: Path) -> None:
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    with urllib.request.urlopen(request, timeout=60) as response:
+        content_type = response.headers.get("Content-Type")
+        extension = extension_for(content_type, url)
+        target = destination.with_suffix(extension)
+        target.write_bytes(response.read())
+    if destination != target and destination.exists():
+        destination.unlink()
+
+
+def localize_images(posts: list[dict]) -> list[dict]:
+    IMAGE_DIR.mkdir(parents=True, exist_ok=True)
+    localized: list[dict] = []
+    keep_names: set[str] = set()
+
+    for post in posts:
+        post_id = post.get("id") or "unknown"
+        source_url = post.get("imageUrl") or ""
+        if not source_url:
+            continue
+
+        temp_path = IMAGE_DIR / post_id
+        download_image(source_url, temp_path)
+        saved = next(IMAGE_DIR.glob(f"{post_id}.*"), None)
+        if saved is None:
+            continue
+
+        keep_names.add(saved.name)
+        localized.append(
+            {
+                **post,
+                "imageUrl": f"/instagram/{saved.name}",
+            }
+        )
+
+    for existing in IMAGE_DIR.iterdir():
+        if existing.is_file() and existing.name not in keep_names:
+            existing.unlink()
+
+    return localized
 
 
 def fetch_from_graph_api() -> dict | None:
@@ -138,13 +196,22 @@ def load_existing() -> dict:
 def main() -> int:
     try:
         data = fetch_from_graph_api() or fetch_from_wordpress_api()
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
+        data["posts"] = localize_images(data["posts"])
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError) as error:
         print(f"Warning: Instagram fetch failed: {error}", file=sys.stderr)
         existing = load_existing()
         if existing.get("posts"):
             print(f"Keeping existing Instagram cache ({len(existing['posts'])} posts).")
             return 0
         print("No Instagram cache available.", file=sys.stderr)
+        return 1
+
+    if not data["posts"]:
+        print("Warning: Instagram fetch returned no posts.", file=sys.stderr)
+        existing = load_existing()
+        if existing.get("posts"):
+            print(f"Keeping existing Instagram cache ({len(existing['posts'])} posts).")
+            return 0
         return 1
 
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
