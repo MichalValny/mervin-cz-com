@@ -45,6 +45,7 @@ fi
 
 echo
 echo "==> Step 1/2: Deploy static site (S3 + CloudFront)"
+export AWS_ALLOW_CREATE_BUCKET=true
 bash scripts/deploy-aws.sh
 
 CLOUDFRONT_URL=""

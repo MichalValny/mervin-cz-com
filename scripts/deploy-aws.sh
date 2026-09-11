@@ -51,7 +51,16 @@ fi
 npm run build
 
 echo "==> Ensuring S3 bucket s3://${S3_BUCKET} exists in ${AWS_REGION}"
-if ! aws s3api head-bucket --bucket "$S3_BUCKET" 2>/dev/null; then
+bucket_exists() {
+  aws s3api get-bucket-location --bucket "$S3_BUCKET" >/dev/null 2>&1
+}
+
+if ! bucket_exists; then
+  if [[ "${AWS_ALLOW_CREATE_BUCKET:-}" != "true" ]]; then
+    echo "S3 bucket s3://${S3_BUCKET} was not found." >&2
+    echo "Run scripts/bootstrap-aws.sh first (with mervin-cz-bootstrap credentials)." >&2
+    exit 1
+  fi
   if [[ "$AWS_REGION" == "us-east-1" ]]; then
     aws s3api create-bucket --bucket "$S3_BUCKET"
   else
