@@ -175,7 +175,7 @@ def main():
         "siteName": "mervin-cz",
         "siteUrl": BASE,
         "logo": "/images/title2-1.png",
-        "favicon": "/images/favicon.png",
+        "favicon": "/images/favicon.svg",
         "instagram": True,
         "instagramUsername": "mervinczcom",
         "instagramProfileUrl": "https://www.instagram.com/mervinczcom/",
