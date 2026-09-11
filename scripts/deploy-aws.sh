@@ -76,15 +76,17 @@ if ! aws s3api put-public-access-block \
   echo "Warning: could not update public access block (may already be set)."
 fi
 
-echo "==> Syncing assets to S3"
-aws s3 sync dist/ "s3://${S3_BUCKET}/" \
-  --delete \
+echo "==> Uploading assets to S3"
+# Use cp instead of sync so deploy works without s3:ListBucket (PutObject only).
+aws s3 cp dist/ "s3://${S3_BUCKET}/" \
+  --recursive \
   --only-show-errors \
   --exclude "index.html" \
   --exclude "**/index.html" \
   --cache-control "public, max-age=31536000, immutable"
 
-aws s3 sync dist/ "s3://${S3_BUCKET}/" \
+aws s3 cp dist/ "s3://${S3_BUCKET}/" \
+  --recursive \
   --only-show-errors \
   --exclude "*" \
   --include "index.html" \
