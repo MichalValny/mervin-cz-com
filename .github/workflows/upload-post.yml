@@ -1,4 +1,4 @@
-name: Process upload
+name: Upload post
 
 on:
   repository_dispatch:
@@ -51,9 +51,11 @@ jobs:
         run: |
           python3 scripts/process-upload.py "$UPLOAD_ID" > upload-result.json
           cat upload-result.json
-          echo "result<<EOF" >> "$GITHUB_OUTPUT"
-          cat upload-result.json >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          {
+            echo 'result<<UPLOAD_RESULT'
+            cat upload-result.json
+            echo 'UPLOAD_RESULT'
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create pull request
         env:
@@ -62,6 +64,12 @@ jobs:
           SLUG="$(jq -r '.slug' upload-result.json)"
           TITLE="$(jq -r '.title' upload-result.json)"
           BRANCH="upload/${SLUG}-${UPLOAD_ID}"
+          BODY="$(printf '%s\n' \
+            "Automatický upload od **${UPLOAD_AUTHOR}**." \
+            "" \
+            "Upload ID: \`${UPLOAD_ID}\`" \
+            "" \
+            "Po kontrole prosím sloučte tento PR. Deploy proběhne automaticky.")"
           git lfs install
           git checkout -b "$BRANCH"
           git add src/data/posts.json src/content/posts public/galleries
@@ -72,11 +80,4 @@ jobs:
             --base main \
             --head "$BRANCH" \
             --title "Upload: ${TITLE}" \
-            --body "$(cat <<EOF
-Automatický upload od **${UPLOAD_AUTHOR}**.
-
-Upload ID: \`${UPLOAD_ID}\`
-
-Po kontrole prosím sloučte tento PR. Deploy proběhne automaticky.
-EOF
-)"
+            --body "$BODY"
