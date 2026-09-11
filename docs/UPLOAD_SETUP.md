@@ -30,23 +30,26 @@ Stávající `AWS_ACCESS_KEY_ID` a `AWS_SECRET_ACCESS_KEY` se používají i pro
 
 | Variable | Příklad |
 |----------|---------|
-| `PUBLIC_UPLOAD_API_URL` | volitelné – přepíše `src/data/upload-api.json` jen pokud soubor chybí nebo je neplatný |
+| `PUBLIC_UPLOAD_API_URL` | volitelné – přepíše `src/data/upload-api.json` |
+| `UPLOAD_S3_BUCKET` | `web-mervin-cz-com` (volitelné) |
+| `UPLOAD_S3_PREFIX` | `uploads-staging` (volitelné) |
+| `S3_BUCKET` | `web-mervin-cz-com` |
 
-Správnou URL z AWS zjistíte příkazem:
+Správnou API URL z AWS zjistíte:
 
 ```bash
 bash scripts/sync-upload-api-url.sh
 ```
 
-Adresa musí přesně odpovídat výstupu deploy skriptu (zkopírujte celý řetězec, ne hádání z písma terminálu).
-| `UPLOAD_S3_BUCKET` | `mervin-cz-com` (volitelné) |
-| `UPLOAD_S3_PREFIX` | `uploads-staging` (volitelné) |
+Kompletní AWS setup (nový účet): viz [`AWS_SETUP.md`](AWS_SETUP.md).
 
 ## 3. AWS oprávnění pro deploy upload API
 
-Deploy skript potřebuje **více oprávnění** než samotný upload webu na S3. Uživatel `mervin-cz-delete` (nebo jiný deploy účet) musí umět vytvořit Lambda, API Gateway a IAM roli.
+Deploy skript potřebuje **více oprávnění** než samotný upload webu na S3. IAM user `mervin-cz-deploy` musí umět vytvořit Lambda, API Gateway a IAM roli.
 
-V **AWS Console → IAM → Users → váš uživatel → Add permissions → Create inline policy → JSON** vložte:
+Hotová policy v repozitáři: [`docs/iam/mervin-cz-deploy-policy.json`](iam/mervin-cz-deploy-policy.json)
+
+Nebo v **AWS Console → IAM → Users → mervin-cz-deploy → Create inline policy → JSON**:
 
 ```json
 {
@@ -62,7 +65,7 @@ V **AWS Console → IAM → Users → váš uživatel → Add permissions → Cr
         "iam:PassRole"
       ],
       "Resource": [
-        "arn:aws:iam::146240438812:role/mervin-upload-api-role"
+        "arn:aws:iam::777171524899:role/mervin-upload-api-role"
       ]
     },
     {
@@ -74,7 +77,7 @@ V **AWS Console → IAM → Users → váš uživatel → Add permissions → Cr
         "lambda:GetFunction",
         "lambda:AddPermission"
       ],
-      "Resource": "arn:aws:lambda:*:146240438812:function:mervin-upload-api"
+      "Resource": "arn:aws:lambda:*:777171524899:function:mervin-upload-api"
     },
     {
       "Effect": "Allow",
@@ -92,7 +95,7 @@ V **AWS Console → IAM → Users → váš uživatel → Add permissions → Cr
         "s3:GetObject",
         "s3:HeadObject"
       ],
-      "Resource": "arn:aws:s3:::mervin-cz-com/uploads-staging/*"
+      "Resource": "arn:aws:s3:::web-mervin-cz-com/uploads-staging/*"
     },
     {
       "Effect": "Allow",
@@ -103,7 +106,7 @@ V **AWS Console → IAM → Users → váš uživatel → Add permissions → Cr
 }
 ```
 
-Účet ID `146240438812` a bucket `mervin-cz-com` upravte, pokud se liší.
+Účet ID `777171524899`, bucket `web-mervin-cz-com`.
 
 **Alternativa:** přihlaste se AWS CLI jednou účtem s admin právy, spusťte deploy, a pak stačí uživateli pro běh uploadu jen S3 + Lambda update (nebo deploy znovu jen při změně API).
 

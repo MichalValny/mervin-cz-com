@@ -33,7 +33,9 @@ npm run scrape
 
 ## Nasazení na AWS (S3 + CloudFront)
 
-Bucket: `mervin-cz-com` (region `us-east-1`)
+Bucket: `web-mervin-cz-com` (region `us-east-1`, account `777171524899`)
+
+Kompletní setup nového AWS účtu: [`docs/AWS_SETUP.md`](docs/AWS_SETUP.md)
 
 ```bash
 export AWS_ACCESS_KEY_ID=...

@@ -34,7 +34,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
-          S3_BUCKET: mervin-cz-com
+          S3_BUCKET: ${{ vars.S3_BUCKET || 'web-mervin-cz-com' }}
           ACM_CERTIFICATE_ARN: ${{ vars.ACM_CERTIFICATE_ARN }}
           CLOUDFRONT_ALIASES: ${{ vars.CLOUDFRONT_ALIASES }}
           PUBLIC_UPLOAD_API_URL: ${{ vars.PUBLIC_UPLOAD_API_URL }}

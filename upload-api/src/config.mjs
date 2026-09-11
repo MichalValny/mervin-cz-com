@@ -8,7 +8,7 @@ export function getConfig() {
     .filter(Boolean);
 
   return {
-    bucket: process.env.UPLOAD_S3_BUCKET ?? 'mervin-cz-com',
+    bucket: process.env.UPLOAD_S3_BUCKET ?? 'web-mervin-cz-com',
     prefix: process.env.UPLOAD_S3_PREFIX ?? 'uploads-staging',
     jwtSecret: process.env.UPLOAD_JWT_SECRET,
     passwords: {

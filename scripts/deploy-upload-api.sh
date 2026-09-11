@@ -13,7 +13,7 @@ set -euo pipefail
 #
 # Optional:
 #   AWS_REGION (default: us-east-1)
-#   UPLOAD_S3_BUCKET (default: mervin-cz-com)
+#   UPLOAD_S3_BUCKET (default: web-mervin-cz-com)
 #   UPLOAD_S3_PREFIX (default: uploads-staging)
 #   UPLOAD_API_NAME (default: mervin-upload-api)
 #   GITHUB_UPLOAD_REPO (default: MichalValny/mervin-cz-com)
@@ -22,11 +22,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 export PATH="${HOME}/.local/bin:${PATH}"
-: "${AWS_REGION:=us-east-1}"
-: "${UPLOAD_S3_BUCKET:=mervin-cz-com}"
-: "${UPLOAD_S3_PREFIX:=uploads-staging}"
-: "${UPLOAD_API_NAME:=mervin-upload-api}"
-: "${GITHUB_UPLOAD_REPO:=MichalValny/mervin-cz-com}"
+# shellcheck source=aws-env.defaults.sh
+source "${ROOT_DIR}/scripts/aws-env.defaults.sh"
 
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -63,6 +60,7 @@ const payload = {
     GITHUB_UPLOAD_REPO: process.env.GITHUB_UPLOAD_REPO,
     UPLOAD_S3_BUCKET: process.env.UPLOAD_S3_BUCKET,
     UPLOAD_S3_PREFIX: process.env.UPLOAD_S3_PREFIX,
+    UPLOAD_ALLOWED_ORIGINS: process.env.UPLOAD_ALLOWED_ORIGINS,
   },
 };
 process.stdout.write(JSON.stringify(payload));
