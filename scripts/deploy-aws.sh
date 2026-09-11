@@ -5,8 +5,8 @@ set -euo pipefail
 # Intended for GitHub Actions with mervin-cz-deploy credentials.
 #
 # Required environment variables:
-#   AWS_ACCESS_KEY_ID (or AWS_DEPLOY_ACCESS_KEY_ID)
-#   AWS_SECRET_ACCESS_KEY (or AWS_DEPLOY_SECRET_ACCESS_KEY)
+#   AWS_DEPLOY_ACCESS_KEY_ID
+#   AWS_DEPLOY_SECRET_ACCESS_KEY
 #
 # Optional:
 #   AWS_REGION, S3_BUCKET, CLOUDFRONT_DISTRIBUTION_ID, PUBLIC_UPLOAD_API_URL
@@ -29,14 +29,15 @@ require_cmd aws
 require_cmd npm
 require_cmd jq
 
-export AWS_ACCESS_KEY_ID="${AWS_DEPLOY_ACCESS_KEY_ID:-${AWS_ACCESS_KEY_ID:-}}"
-export AWS_SECRET_ACCESS_KEY="${AWS_DEPLOY_SECRET_ACCESS_KEY:-${AWS_SECRET_ACCESS_KEY:-}}"
-
-if [[ -z "${AWS_ACCESS_KEY_ID}" || -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
+if [[ -z "${AWS_DEPLOY_ACCESS_KEY_ID:-}" || -z "${AWS_DEPLOY_SECRET_ACCESS_KEY:-}" ]]; then
   echo "AWS deploy credentials are not configured." >&2
   echo "Set AWS_DEPLOY_ACCESS_KEY_ID and AWS_DEPLOY_SECRET_ACCESS_KEY (mervin-cz-deploy)." >&2
+  echo "Legacy AWS_ACCESS_KEY_ID secrets are not supported." >&2
   exit 1
 fi
+
+export AWS_ACCESS_KEY_ID="${AWS_DEPLOY_ACCESS_KEY_ID}"
+export AWS_SECRET_ACCESS_KEY="${AWS_DEPLOY_SECRET_ACCESS_KEY}"
 
 export AWS_DEFAULT_REGION="$AWS_REGION"
 export AWS_REGION
@@ -52,6 +53,12 @@ npm run build
 
 echo "==> AWS identity"
 aws sts get-caller-identity
+
+ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
+if [[ "$ACCOUNT_ID" != "$AWS_ACCOUNT_ID" ]]; then
+  echo "Error: expected AWS account ${AWS_ACCOUNT_ID}, got ${ACCOUNT_ID}" >&2
+  exit 1
+fi
 
 INFRA_FILE="${ROOT_DIR}/src/data/aws-infra.json"
 DISTRIBUTION_ID="${CLOUDFRONT_DISTRIBUTION_ID:-}"
