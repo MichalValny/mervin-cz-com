@@ -49,6 +49,30 @@ aws_file_uri() {
   printf 'fileb://%s' "$path"
 }
 
+validate_github_token() {
+  local repo="${GITHUB_UPLOAD_REPO:-MichalValny/mervin-cz-com}"
+  local headers status scopes
+
+  headers="$(curl -sI \
+    -H "Authorization: Bearer ${UPLOAD_GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${repo}/actions/workflows/process-upload.yml")"
+  status="$(printf '%s\n' "$headers" | awk 'toupper($1) ~ /^HTTP/ { print $2; exit }')"
+  scopes="$(printf '%s\n' "$headers" | tr -d '\r' | grep -i '^x-oauth-scopes:' | cut -d: -f2- | sed 's/^ //')"
+
+  if [[ "$status" != "200" ]]; then
+    echo "WARNING: UPLOAD_GITHUB_TOKEN cannot read workflow process-upload.yml (HTTP ${status})." >&2
+    echo "Use a classic PAT with repo+workflow scopes, or fine-grained PAT with Actions: Read and write." >&2
+    return 0
+  fi
+
+  if [[ -n "$scopes" && "$scopes" != *"workflow"* ]]; then
+    echo "WARNING: UPLOAD_GITHUB_TOKEN is missing the workflow scope (found: ${scopes})." >&2
+    echo "Upload /complete will fail until the token is updated and Bootstrap AWS is rerun." >&2
+  fi
+}
+
 build_lambda_env_json() {
   node <<'EOF'
 const payload = {
@@ -58,6 +82,7 @@ const payload = {
     UPLOAD_PASSWORD_HORAK: process.env.UPLOAD_PASSWORD_HORAK,
     UPLOAD_GITHUB_TOKEN: process.env.UPLOAD_GITHUB_TOKEN,
     GITHUB_UPLOAD_REPO: process.env.GITHUB_UPLOAD_REPO,
+    GITHUB_UPLOAD_WORKFLOW: process.env.GITHUB_UPLOAD_WORKFLOW,
     UPLOAD_S3_BUCKET: process.env.UPLOAD_S3_BUCKET,
     UPLOAD_S3_PREFIX: process.env.UPLOAD_S3_PREFIX,
     UPLOAD_ALLOWED_ORIGINS: process.env.UPLOAD_ALLOWED_ORIGINS,
@@ -275,6 +300,7 @@ ensure_http_api() {
   echo "$api_endpoint"
 }
 
+validate_github_token
 ensure_lambda_role
 deploy_lambda
 API_URL="$(ensure_http_api)"

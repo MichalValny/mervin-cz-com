@@ -15,7 +15,7 @@ export function getConfig() {
       Michal: process.env.UPLOAD_PASSWORD_MICHAL,
       Horak: process.env.UPLOAD_PASSWORD_HORAK,
     },
-    githubToken: process.env.UPLOAD_GITHUB_TOKEN,
+    githubToken: process.env.UPLOAD_GITHUB_TOKEN?.trim(),
     githubRepo: process.env.GITHUB_UPLOAD_REPO ?? 'MichalValny/mervin-cz-com',
     githubWorkflow: process.env.GITHUB_UPLOAD_WORKFLOW ?? 'process-upload.yml',
     allowedOrigins,
