@@ -11,7 +11,9 @@
         "s3:DeleteObject",
         "s3:PutBucketPolicy",
         "s3:GetBucketPolicy",
-        "s3:GetBucketLocation"
+        "s3:GetBucketLocation",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:GetBucketPublicAccessBlock"
       ],
       "Resource": [
         "arn:aws:s3:::web-mervin-cz-com",
