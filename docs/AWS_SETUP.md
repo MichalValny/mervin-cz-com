@@ -120,6 +120,7 @@ Detailní popis: [`UPLOAD_SETUP.md`](UPLOAD_SETUP.md)
 |-------|--------|
 | `expected AWS account 777171524899` | Secrets patří do jiného účtu — zkontrolujte `AWS_BOOTSTRAP_*` nebo `AWS_DEPLOY_*` |
 | `BucketAlreadyExists` | Název bucketu drží jiný AWS účet — smažte bucket tam, nebo zvolte jiný název |
+| `OperationAborted` při `CreateBucket` | AWS ještě uvolňuje název po smazání bucketu — počkejte 15–60 minut a znovu spusťte **Bootstrap AWS** |
 | `CloudFront distribution not found` | Spusťte **Bootstrap AWS** |
 | `AccessDenied` při deployi | Zkontrolujte `AWS_DEPLOY_*` secrets a policy u `mervin-cz-deploy` |
 | ACM certifikát `PENDING_VALIDATION` | Přidejte DNS CNAME z výstupu bootstrapu |
