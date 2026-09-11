@@ -22,11 +22,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Bootstrap S3, CloudFront, and upload API
+      - name: Bootstrap full AWS stack (account 777171524899)
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_ALLOW_CREATE_BUCKET: true
+          AWS_BOOTSTRAP_ACCESS_KEY_ID: ${{ secrets.AWS_BOOTSTRAP_ACCESS_KEY_ID }}
+          AWS_BOOTSTRAP_SECRET_ACCESS_KEY: ${{ secrets.AWS_BOOTSTRAP_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
           S3_BUCKET: ${{ vars.S3_BUCKET || 'web-mervin-cz-com' }}
           UPLOAD_S3_BUCKET: ${{ vars.UPLOAD_S3_BUCKET || 'web-mervin-cz-com' }}
@@ -37,17 +36,21 @@ jobs:
           ACM_CERTIFICATE_ARN: ${{ vars.ACM_CERTIFICATE_ARN }}
           CLOUDFRONT_ALIASES: ${{ vars.CLOUDFRONT_ALIASES }}
         run: |
-          chmod +x scripts/bootstrap-aws.sh scripts/deploy-aws.sh scripts/deploy-upload-api.sh
+          chmod +x scripts/bootstrap-aws.sh \
+            scripts/setup-aws-infra.sh \
+            scripts/setup-acm-certificate.sh \
+            scripts/ensure-deploy-iam.sh \
+            scripts/deploy-upload-api.sh
           ./scripts/bootstrap-aws.sh
 
-      - name: Commit upload API URL if changed
+      - name: Commit infrastructure config
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/data/upload-api.json || true
+          git add src/data/aws-infra.json src/data/upload-api.json || true
           if git diff --staged --quiet; then
-            echo "No upload-api.json changes to commit."
+            echo "No infrastructure config changes to commit."
           else
-            git commit -m "Configure upload API URL after bootstrap"
+            git commit -m "Configure AWS infrastructure after bootstrap"
             git push
           fi

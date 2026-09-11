@@ -33,29 +33,16 @@ npm run scrape
 
 ## Nasazení na AWS (S3 + CloudFront)
 
-Bucket: `web-mervin-cz-com` (region `us-east-1`, account `777171524899`)
+Účet `777171524899`, bucket `web-mervin-cz-com`, region `us-east-1`.
 
-Kompletní setup nového AWS účtu: [`docs/AWS_SETUP.md`](docs/AWS_SETUP.md)
+Kompletní návod: [`docs/AWS_SETUP.md`](docs/AWS_SETUP.md)
 
-```bash
-export AWS_ACCESS_KEY_ID=...
-export AWS_SECRET_ACCESS_KEY=...
-export AWS_REGION=us-east-1
-# volitelně pro vlastní doménu:
-# export ACM_CERTIFICATE_ARN=arn:aws:acm:us-east-1:...
-# export CLOUDFRONT_ALIASES=www.mervin-cz.com,mervin-cz.com
+| Krok | Workflow | IAM user |
+|------|----------|----------|
+| **První setup** (S3, CloudFront, ACM, Lambda) | Actions → **Bootstrap AWS** | `mervin-cz-bootstrap` |
+| **Aktualizace webu** (push do `main`) | **Deploy to AWS** | `mervin-cz-deploy` |
 
-chmod +x scripts/deploy-aws.sh
-./scripts/deploy-aws.sh
-```
-
-Skript:
-1. sestaví statický web (`npm run build`)
-2. nahraje soubory do S3 s cache hlavičkami
-3. vytvoří nebo použije CloudFront distribuci s OAC
-4. spustí invalidaci cache
-
-Alternativně lze nasadit přes GitHub Actions workflow `.github/workflows/deploy-aws.yml` se secrets `AWS_ACCESS_KEY_ID` a `AWS_SECRET_ACCESS_KEY`.
+Lokální PC není potřeba — vše přes GitHub Actions.
 
 ## Struktura
 
