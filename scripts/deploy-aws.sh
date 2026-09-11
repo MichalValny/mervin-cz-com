@@ -160,6 +160,28 @@ apply_bucket_policy() {
           "AWS:SourceArn": "arn:aws:cloudfront::${ACCOUNT_ID}:distribution/${distribution_id}"
         }
       }
+    },
+    {
+      "Sid": "AllowDeployUser",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::${ACCOUNT_ID}:user/mervin-cz-deploy"
+      },
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetBucketLocation",
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:PutBucketPolicy",
+        "s3:GetBucketPolicy",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:GetBucketPublicAccessBlock"
+      ],
+      "Resource": [
+        "arn:aws:s3:::${S3_BUCKET}",
+        "arn:aws:s3:::${S3_BUCKET}/*"
+      ]
     }
   ]
 }

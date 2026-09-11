@@ -144,6 +144,7 @@ Detailní popis uploadu: [`UPLOAD_SETUP.md`](UPLOAD_SETUP.md)
 |-------|--------|
 | `AccessDenied` on `CreateBucket` | Bucket ještě neexistuje — spusťte **Bootstrap AWS** s `mervin-cz-bootstrap` |
 | `S3 bucket ... was not found` | Stejné — bootstrap workflow nebo `bash scripts/bootstrap-aws.sh` |
+| `AccessDenied` on `PutObject` / `ListObjects` | Znovu uložte policy z `docs/iam/mervin-cz-deploy-policy.json` (bucket + object statementy zvlášť). Ověřte IAM Policy Simulator. Dočasně použijte klíče `mervin-cz-bootstrap` v GitHub Secrets. |
 | `AccessDenied` on `iam:CreateRole` | Policy `mervin-cz-deploy` nebo bootstrap admin |
 | Upload login „Failed to fetch“ | Zkontrolujte `PUBLIC_UPLOAD_API_URL` a CORS (`UPLOAD_ALLOWED_ORIGINS`) |
 | Instagram nefunguje | Workflow **Refresh Instagram feed** (denně automaticky) |
