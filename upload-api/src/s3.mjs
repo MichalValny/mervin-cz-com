@@ -36,8 +36,23 @@ export async function createPresignedPutUrl(bucket, key, contentType, expiresIn 
   return getSignedUrl(s3, command, { expiresIn });
 }
 
+function normalizePrefix(prefix) {
+  return String(prefix ?? '').replace(/^\/+|\/+$/g, '');
+}
+
+function normalizeUploadId(uploadId) {
+  const value = String(uploadId ?? '').replace(/^\/+|\/+$/g, '');
+  if (!value) {
+    return value;
+  }
+  if (value.includes('/')) {
+    return value.split('/').filter(Boolean).pop() ?? value;
+  }
+  return value;
+}
+
 export function uploadPrefix(prefix, uploadId) {
-  return `${prefix}/${uploadId}`;
+  return [normalizePrefix(prefix), normalizeUploadId(uploadId)].filter(Boolean).join('/');
 }
 
 export function sanitizeFileName(name) {

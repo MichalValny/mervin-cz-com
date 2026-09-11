@@ -3,12 +3,25 @@
   "Statement": [
     {
       "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": "arn:aws:s3:::web-mervin-cz-com",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": ["uploads-staging/*"]
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
       "Action": [
         "s3:PutObject",
         "s3:GetObject",
         "s3:HeadObject"
       ],
-      "Resource": "arn:aws:s3:::web-mervin-cz-com/uploads-staging/*"
+      "Resource": [
+        "arn:aws:s3:::web-mervin-cz-com/uploads-staging/*",
+        "arn:aws:s3:::web-mervin-cz-com/uploads-staging/*/*"
+      ]
     }
   ]
 }

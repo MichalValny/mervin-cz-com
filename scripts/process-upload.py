@@ -183,15 +183,103 @@ def process_upload(staging_path: Path, meta: dict) -> dict:
     }
 
 
+def normalize_prefix(prefix: str) -> str:
+    return prefix.strip().strip("/")
+
+
+def normalize_upload_id(raw: str) -> str:
+    value = raw.strip().strip("/")
+    if not value:
+        raise SystemExit("Upload ID is empty.")
+    if "/" in value:
+        parts = [part for part in value.split("/") if part]
+        if len(parts) >= 2 and parts[0] == "uploads-staging":
+            return parts[1]
+        return parts[-1]
+    return value
+
+
+def staging_object_key(prefix: str, upload_id: str, *parts: str) -> str:
+    segments = [normalize_prefix(prefix), normalize_upload_id(upload_id), *parts]
+    return "/".join(segment.strip("/") for segment in segments if segment.strip("/"))
+
+
+def resolve_meta_key(s3, bucket: str, prefix: str, upload_id: str) -> str:
+    import botocore
+
+    normalized_id = normalize_upload_id(upload_id)
+    normalized_prefix = normalize_prefix(prefix)
+    candidates = [
+        staging_object_key(prefix, upload_id, "meta.json"),
+        f"{normalized_prefix}/{normalized_id}/meta.json",
+        f"{normalized_prefix}//{normalized_id}/meta.json",
+    ]
+    seen = set()
+    for meta_key in candidates:
+        if meta_key in seen:
+            continue
+        seen.add(meta_key)
+        try:
+            s3.head_object(Bucket=bucket, Key=meta_key)
+            return meta_key
+        except botocore.exceptions.ClientError as error:
+            code = error.response.get("Error", {}).get("Code")
+            if code not in {"404", "NoSuchKey", "NotFound", "403", "AccessDenied"}:
+                raise
+
+    response = s3.list_objects_v2(
+        Bucket=bucket,
+        Prefix=f"{normalized_prefix}/",
+        Delimiter="/",
+    )
+    for common_prefix in response.get("CommonPrefixes", []):
+        folder = common_prefix.get("Prefix", "")
+        folder_id = folder.rstrip("/").split("/")[-1]
+        if folder_id != normalized_id:
+            continue
+        meta_key = f"{folder}meta.json"
+        try:
+            s3.head_object(Bucket=bucket, Key=meta_key)
+            return meta_key
+        except botocore.exceptions.ClientError as error:
+            code = error.response.get("Error", {}).get("Code")
+            if code not in {"404", "NoSuchKey", "NotFound", "403", "AccessDenied"}:
+                raise
+
+    listing_prefix = staging_object_key(prefix, upload_id)
+    response = s3.list_objects_v2(Bucket=bucket, Prefix=f"{listing_prefix}/", MaxKeys=5)
+    found_keys = [item["Key"] for item in response.get("Contents", []) if item.get("Key")]
+    hint = ""
+    if found_keys:
+        hint = f" Found objects under s3://{bucket}/{listing_prefix}/: {', '.join(found_keys[:5])}."
+    else:
+        hint = f" No objects found under s3://{bucket}/{listing_prefix}/."
+
+    raise SystemExit(
+        "Upload bundle not found in S3. "
+        f"Tried keys: {', '.join(seen)} in bucket {bucket}.{hint} "
+        "Check UPLOAD_S3_BUCKET / UPLOAD_S3_PREFIX and the upload ID."
+    )
+
+
 def download_staging_from_s3(upload_id: str, bucket: str, prefix: str) -> tuple[Path, dict]:
     import boto3
 
-    s3 = boto3.client("s3")
-    staging_path = STAGING_DIR / upload_id
+    region = __import__("os").environ.get("AWS_REGION", "us-east-1")
+    normalized_id = normalize_upload_id(upload_id)
+    normalized_prefix = normalize_prefix(prefix)
+    s3 = boto3.client("s3", region_name=region)
+    staging_path = STAGING_DIR / normalized_id
     photos_path = staging_path / "photos"
     photos_path.mkdir(parents=True, exist_ok=True)
 
-    meta_key = f"{prefix}/{upload_id}/meta.json"
+    print(
+        f"Downloading upload bundle from s3://{bucket}/{normalized_prefix}/{normalized_id}/ "
+        f"(region={region})",
+        file=sys.stderr,
+    )
+
+    meta_key = resolve_meta_key(s3, bucket, normalized_prefix, normalized_id)
     meta_obj = s3.get_object(Bucket=bucket, Key=meta_key)
     meta = json.loads(meta_obj["Body"].read().decode("utf-8"))
 
