@@ -33,7 +33,7 @@ npm run scrape
 
 ## Nasazení na AWS (S3 + CloudFront)
 
-Účet `777171524899`, bucket `web-mervin-cz-com`, region `us-east-1`.
+Účet `777171524899`, bucket `mervin-cz-com-777171524899`, region `us-east-1`.
 
 Kompletní návod: [`docs/AWS_SETUP.md`](docs/AWS_SETUP.md)
 

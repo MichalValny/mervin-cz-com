@@ -12,7 +12,7 @@
         "s3:PutBucketPublicAccessBlock",
         "s3:GetBucketPublicAccessBlock"
       ],
-      "Resource": "arn:aws:s3:::web-mervin-cz-com"
+      "Resource": "arn:aws:s3:::mervin-cz-com-777171524899"
     },
     {
       "Sid": "S3ObjectAccess",
@@ -22,7 +22,7 @@
         "s3:PutObject",
         "s3:DeleteObject"
       ],
-      "Resource": "arn:aws:s3:::web-mervin-cz-com/*"
+      "Resource": "arn:aws:s3:::mervin-cz-com-777171524899/*"
     },
     {
       "Sid": "CloudFrontDeploy",
