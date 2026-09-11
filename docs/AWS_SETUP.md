@@ -29,6 +29,8 @@ Soubor v repozitáři: [`docs/iam/mervin-cz-deploy-policy.json`](iam/mervin-cz-d
 
 IAM → Users → `mervin-cz-deploy` → Add permissions → Create inline policy → JSON vložit z toho souboru.
 
+**Důležité:** Policy musí být v AWS Console skutečně uložena u uživatele `mervin-cz-deploy`. Bez ní deploy skončí chybou `403 Forbidden` na `HeadBucket`.
+
 ## 2. První deploy
 
 ### Varianta A – bez lokálního PC (doporučeno)

@@ -91,10 +91,12 @@ if bucket_missing; then
   fi
 fi
 
-aws s3api put-public-access-block \
+if ! aws s3api put-public-access-block \
   --bucket "$S3_BUCKET" \
   --public-access-block-configuration \
-  BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+  BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true 2>/dev/null; then
+  echo "Warning: could not update public access block (may already be set or need s3:PutBucketPublicAccessBlock)."
+fi
 
 echo "==> Syncing assets to S3"
 aws s3 sync dist/ "s3://${S3_BUCKET}/" \
