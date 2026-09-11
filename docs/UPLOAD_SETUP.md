@@ -22,7 +22,7 @@ V repozitáři **Settings → Secrets and variables → Actions**:
 | `UPLOAD_JWT_SECRET` | Náhodný řetězec (např. `openssl rand -hex 32`) |
 | `UPLOAD_GITHUB_TOKEN` | GitHub PAT s oprávněním `repo` a `workflow` |
 
-Stávající `AWS_ACCESS_KEY_ID` a `AWS_SECRET_ACCESS_KEY` se používají i pro stažení fotek ze S3 ve workflow `process-upload.yml`.
+`AWS_DEPLOY_ACCESS_KEY_ID` a `AWS_DEPLOY_SECRET_ACCESS_KEY` (uživatel `mervin-cz-deploy`) se používají pro stažení fotek ze S3 ve workflow `process-upload.yml`.
 
 ## 2. GitHub Variables
 
@@ -43,90 +43,25 @@ bash scripts/sync-upload-api-url.sh
 
 Kompletní AWS setup (nový účet): viz [`AWS_SETUP.md`](AWS_SETUP.md).
 
-## 3. AWS oprávnění pro deploy upload API
+## 3. Nasazení upload API
 
-Deploy skript potřebuje **více oprávnění** než samotný upload webu na S3. IAM user `mervin-cz-deploy` musí umět vytvořit Lambda, API Gateway a IAM roli.
+Upload API (Lambda + API Gateway) se nasadí automaticky při workflow **Bootstrap AWS** — viz [`AWS_SETUP.md`](AWS_SETUP.md).
 
-Hotová policy v repozitáři: [`docs/iam/mervin-cz-deploy-policy.json`](iam/mervin-cz-deploy-policy.json)
+Policy pro `mervin-cz-deploy` (včetně Lambda): [`docs/iam/mervin-cz-deploy-policy.json`](iam/mervin-cz-deploy-policy.json)
 
-Nebo v **AWS Console → IAM → Users → mervin-cz-deploy → Create inline policy → JSON**:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "iam:CreateRole",
-        "iam:GetRole",
-        "iam:PutRolePolicy",
-        "iam:AttachRolePolicy",
-        "iam:PassRole"
-      ],
-      "Resource": [
-        "arn:aws:iam::777171524899:role/mervin-upload-api-role"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "lambda:CreateFunction",
-        "lambda:UpdateFunctionCode",
-        "lambda:UpdateFunctionConfiguration",
-        "lambda:GetFunction",
-        "lambda:AddPermission"
-      ],
-      "Resource": "arn:aws:lambda:*:777171524899:function:mervin-upload-api"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "apigateway:GET",
-        "apigateway:POST",
-        "apigateway:PATCH"
-      ],
-      "Resource": "arn:aws:apigateway:*::/*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:PutObject",
-        "s3:GetObject",
-        "s3:HeadObject"
-      ],
-      "Resource": "arn:aws:s3:::web-mervin-cz-com/uploads-staging/*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": "sts:GetCallerIdentity",
-      "Resource": "*"
-    }
-  ]
-}
-```
-
-Účet ID `777171524899`, bucket `web-mervin-cz-com`.
-
-**Alternativa:** přihlaste se AWS CLI jednou účtem s admin právy, spusťte deploy, a pak stačí uživateli pro běh uploadu jen S3 + Lambda update (nebo deploy znovu jen při změně API).
-
-## 4. Nasazení upload API (Lambda)
-
-Na stroji s nakonfigurovaným AWS CLI:
+Ruční redeploy (volitelné):
 
 ```bash
+export AWS_BOOTSTRAP_ACCESS_KEY_ID='…'   # nebo AWS_DEPLOY_* pro update kódu
+export AWS_BOOTSTRAP_SECRET_ACCESS_KEY='…'
 export UPLOAD_JWT_SECRET='…'
 export UPLOAD_PASSWORD_MICHAL='…'
 export UPLOAD_PASSWORD_HORAK='…'
 export UPLOAD_GITHUB_TOKEN='ghp_…'
-export AWS_ACCESS_KEY_ID='…'
-export AWS_SECRET_ACCESS_KEY='…'
 bash scripts/deploy-upload-api.sh
 ```
 
-Skript vytvoří Lambda + HTTP API, aktualizuje `src/data/upload-api.json` a vypíše URL. Soubor commitněte a pushněte do `main`, nebo nastavte `PUBLIC_UPLOAD_API_URL` v GitHub Variables.
-
-## 5. Nasazení webu
+## 4. Nasazení webu
 
 Po aktualizaci `src/data/upload-api.json` (nebo nastavení `PUBLIC_UPLOAD_API_URL`) pushněte do `main` – deploy workflow sestaví stránku `/upload/` s odkazem na API.
 

@@ -1,90 +1,65 @@
-# AWS setup – web-mervin-cz-com (účet 777171524899)
+# AWS setup – účet 777171524899
 
-Kompletní návod pro nový AWS účet: S3, CloudFront, upload Lambda, GitHub Secrets.
+Kompletní infrastruktura se vytvoří **jedním kliknutím v GitHub Actions** — bez lokálního PC.
 
-## Přehled
+## Architektura
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Jednorázově: Bootstrap AWS (workflow_dispatch)                 │
+│  IAM: mervin-cz-bootstrap (AdministratorAccess)                 │
+│  → IAM user mervin-cz-deploy, S3, CloudFront, ACM, Lambda       │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  Průběžně: Deploy to AWS (push do main / workflow_dispatch)      │
+│  IAM: mervin-cz-deploy (omezená policy)                         │
+│  → build, upload S3, CloudFront invalidation                      │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 | Resource | Název |
 |----------|-------|
 | AWS Account ID | `777171524899` |
 | S3 bucket | `web-mervin-cz-com` |
 | Region | `us-east-1` |
+| Bootstrap IAM user | `mervin-cz-bootstrap` |
+| Deploy IAM user | `mervin-cz-deploy` |
 | CloudFront comment | `web-mervin-cz-com static site` |
 | Lambda | `mervin-upload-api` |
-| Lambda role | `mervin-upload-api-role` |
 | Upload S3 prefix | `uploads-staging/` |
 
-## 1. IAM users
+## 1. Příprava v AWS Console (jednou, ručně)
 
-Vytvořte v **IAM → Users**:
+1. V účtu `777171524899` vytvořte IAM uživatele **`mervin-cz-bootstrap`** s policy **`AdministratorAccess`**.
+2. Vytvořte access key a uložte ji do GitHub Secrets (viz níže).
+3. Uživatele **`mervin-cz-deploy`** vytvoří bootstrap automaticky — access key vytvoříte po bootstrapu v Console.
 
-| User | Policy | Účel |
-|------|--------|------|
-| `mervin-cz-bootstrap` | `AdministratorAccess` | Jednorázový první deploy |
-| `mervin-cz-deploy` | inline `mervin-cz-deploy` | GitHub Actions + běžný deploy |
-
-### Inline policy `mervin-cz-deploy`
-
-Soubor v repozitáři: [`docs/iam/mervin-cz-deploy-policy.json`](iam/mervin-cz-deploy-policy.json)
-
-IAM → Users → `mervin-cz-deploy` → Add permissions → Create inline policy → JSON vložit z toho souboru.
-
-**Důležité:** Policy musí být v AWS Console skutečně uložena u uživatele `mervin-cz-deploy`. Bez ní deploy skončí chybou `403 Forbidden` na `HeadBucket`.
-
-## 2. První deploy
-
-### Varianta A – bez lokálního PC (doporučeno)
-
-1. Nastavte **GitHub Secrets a Variables** (viz sekce 3 a 4) — klíče od **`mervin-cz-bootstrap`**.
-2. Spusťte **Actions → Bootstrap AWS → Run workflow**.
-3. Po úspěchu v Secrets **vyměňte** AWS klíče za **`mervin-cz-deploy`** a bootstrap user deaktivujte.
-
-### Varianta B – lokálně na PC
-
-Nainstalujte: AWS CLI, Node.js 22, npm, jq, python3, git.
-
-```bash
-git clone https://github.com/MichalValny/mervin-cz-com.git
-cd mervin-cz-com
-
-# Klíče od mervin-cz-bootstrap (první běh)
-export AWS_ACCESS_KEY_ID='...'
-export AWS_SECRET_ACCESS_KEY='...'
-export AWS_REGION='us-east-1'
-
-# Upload API (volitelné, lze doplnit později)
-export UPLOAD_JWT_SECRET="$(openssl rand -hex 32)"
-export UPLOAD_PASSWORD_MICHAL='...'
-export UPLOAD_PASSWORD_HORAK='...'
-export UPLOAD_GITHUB_TOKEN='ghp_...'
-
-bash scripts/bootstrap-aws.sh
-```
-
-Skript:
-1. Vytvoří bucket `web-mervin-cz-com`
-2. Vytvoří CloudFront + OAC + rewrite funkci
-3. Nahraje web
-4. (Volitelně) nasadí upload Lambda + API Gateway
-
-Výstup obsahuje CloudFront URL a checklist pro GitHub.
-
-Po úspěchu: **smažte access key u `mervin-cz-bootstrap`**.
-
-## 3. GitHub Secrets
+## 2. GitHub Secrets
 
 **Settings → Secrets and variables → Actions → Secrets**
 
+### Bootstrap (jen pro workflow „Bootstrap AWS“)
+
 | Secret | Hodnota |
 |--------|---------|
-| `AWS_ACCESS_KEY_ID` | klíč od **`mervin-cz-deploy`** |
-| `AWS_SECRET_ACCESS_KEY` | secret od **`mervin-cz-deploy`** |
+| `AWS_BOOTSTRAP_ACCESS_KEY_ID` | klíč od `mervin-cz-bootstrap` |
+| `AWS_BOOTSTRAP_SECRET_ACCESS_KEY` | secret od `mervin-cz-bootstrap` |
+
+### Deploy (pro workflow „Deploy to AWS“ a upload)
+
+| Secret | Hodnota |
+|--------|---------|
+| `AWS_DEPLOY_ACCESS_KEY_ID` | klíč od `mervin-cz-deploy` (po bootstrapu) |
+| `AWS_DEPLOY_SECRET_ACCESS_KEY` | secret od `mervin-cz-deploy` |
 | `UPLOAD_PASSWORD_MICHAL` | upload heslo |
 | `UPLOAD_PASSWORD_HORAK` | upload heslo |
-| `UPLOAD_JWT_SECRET` | stejný jako při deployi Lambda |
+| `UPLOAD_JWT_SECRET` | `openssl rand -hex 32` |
 | `UPLOAD_GITHUB_TOKEN` | GitHub PAT (`repo` + `workflow`) |
 
-## 4. GitHub Variables
+> Zpětná kompatibilita: `deploy-aws.sh` akceptuje i staré názvy `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`.
+
+## 3. GitHub Variables
 
 **Settings → Secrets and variables → Actions → Variables**
 
@@ -93,58 +68,67 @@ Po úspěchu: **smažte access key u `mervin-cz-bootstrap`**.
 | `S3_BUCKET` | `web-mervin-cz-com` |
 | `UPLOAD_S3_BUCKET` | `web-mervin-cz-com` |
 | `AWS_REGION` | `us-east-1` |
-| `PUBLIC_UPLOAD_API_URL` | URL z `src/data/upload-api.json` po deployi upload API |
-| `ACM_CERTIFICATE_ARN` | (volitelné) certifikát pro www.mervin-cz.com v us-east-1 |
 | `CLOUDFRONT_ALIASES` | (volitelné) `www.mervin-cz.com,mervin-cz.com` |
+| `ACM_CERTIFICATE_ARN` | (volitelné) nechte prázdné — bootstrap certifikát vyžádá |
+| `CLOUDFRONT_DISTRIBUTION_ID` | doplní se po bootstrapu (nebo z `src/data/aws-infra.json`) |
+| `PUBLIC_UPLOAD_API_URL` | doplní se po bootstrapu |
+
+## 4. Bootstrap (první nasazení)
+
+1. Nastavte secrets `AWS_BOOTSTRAP_*` a upload secrets.
+2. (Volitelně) nastavte `CLOUDFRONT_ALIASES` pro vlastní doménu.
+3. Spusťte **Actions → Bootstrap AWS → Run workflow**.
+
+Bootstrap automaticky:
+1. Vytvoří IAM uživatele `mervin-cz-deploy` s policy z [`docs/iam/mervin-cz-deploy-policy.json`](iam/mervin-cz-deploy-policy.json)
+2. Vyžádá ACM certifikát (pokud jsou nastaveny aliasy) a vypíše DNS záznamy pro validaci
+3. Vytvoří S3 bucket, CloudFront + OAC, rewrite funkci, bucket policy
+4. Nahraje web
+5. Nasadí upload Lambda + API Gateway
+6. Commitne `src/data/aws-infra.json` a `src/data/upload-api.json`
+
+### Po bootstrapu
+
+1. V AWS Console vytvořte **access key** pro `mervin-cz-deploy`.
+2. Uložte do GitHub Secrets jako `AWS_DEPLOY_ACCESS_KEY_ID` / `AWS_DEPLOY_SECRET_ACCESS_KEY`.
+3. Zkopírujte z výstupu workflow do Variables: `CLOUDFRONT_DISTRIBUTION_ID`, `PUBLIC_UPLOAD_API_URL`.
+4. **Deaktivujte** access key u `mervin-cz-bootstrap`.
+5. Pokud bootstrap vyžádal ACM certifikát — přidejte DNS validační záznamy, počkejte na `ISSUED`, pak znovu spusťte Bootstrap (aktualizuje CloudFront).
 
 ## 5. Průběžný deploy
 
-Po nastavení GitHub Secrets stačí push do `main` nebo **Actions → Deploy to AWS → Run workflow**.
+Po nastavení `AWS_DEPLOY_*` secrets:
 
-Lokální deploy:
+- **push do `main`** → automaticky workflow **Deploy to AWS**
+- nebo **Actions → Deploy to AWS → Run workflow**
 
-```bash
-export AWS_ACCESS_KEY_ID='...'   # mervin-cz-deploy
-export AWS_SECRET_ACCESS_KEY='...'
-bash scripts/deploy-aws.sh
-```
+Deploy pouze: sestaví web → nahraje na S3 → invaliduje CloudFront cache.
 
-Upload API redeploy:
+## 6. DNS
 
-```bash
-bash scripts/deploy-upload-api.sh
-```
+Nasměrujte `www.mervin-cz.com` a `mervin-cz.com` na CloudFront domain z `src/data/aws-infra.json` (např. `d3q9grbtf4hms1.cloudfront.net`).
 
-## 6. Lambda role (automaticky)
+## 7. Upload portal
 
-Deploy skript vytvoří roli `mervin-upload-api-role` s:
-
-- managed policy `AWSLambdaBasicExecutionRole`
-- inline policy `mervin-upload-api-role-s3` — viz [`docs/iam/mervin-upload-api-role-s3-policy.json`](iam/mervin-upload-api-role-s3-policy.json)
-
-## 7. DNS (volitelné)
-
-Po deployi nasměrujte DNS záznamy domény na CloudFront domain name z výstupu deploy skriptu (nebo z `.aws-deploy/cloudfront.json`).
-
-Pro custom doménu nastavte před deployem:
-
-```bash
-export ACM_CERTIFICATE_ARN='arn:aws:acm:us-east-1:777171524899:certificate/...'
-export CLOUDFRONT_ALIASES='www.mervin-cz.com,mervin-cz.com'
-bash scripts/deploy-aws.sh
-```
-
-## 8. Upload portal
-
-Detailní popis uploadu: [`UPLOAD_SETUP.md`](UPLOAD_SETUP.md)
+Detailní popis: [`UPLOAD_SETUP.md`](UPLOAD_SETUP.md)
 
 ## Troubleshooting
 
 | Chyba | Řešení |
 |-------|--------|
-| `AccessDenied` on `CreateBucket` | Bucket ještě neexistuje — spusťte **Bootstrap AWS** s `mervin-cz-bootstrap` |
-| `S3 bucket ... was not found` | Stejné — bootstrap workflow nebo `bash scripts/bootstrap-aws.sh` |
-| `AccessDenied` on `PutObject` / `ListObjects` | Znovu uložte policy z `docs/iam/mervin-cz-deploy-policy.json` (bucket + object statementy zvlášť). Ověřte IAM Policy Simulator. Dočasně použijte klíče `mervin-cz-bootstrap` v GitHub Secrets. |
-| `AccessDenied` on `iam:CreateRole` | Policy `mervin-cz-deploy` nebo bootstrap admin |
-| Upload login „Failed to fetch“ | Zkontrolujte `PUBLIC_UPLOAD_API_URL` a CORS (`UPLOAD_ALLOWED_ORIGINS`) |
-| Instagram nefunguje | Workflow **Refresh Instagram feed** (denně automaticky) |
+| `expected AWS account 777171524899` | Bootstrap secrets patří do jiného účtu |
+| `CloudFront distribution not found` | Spusťte **Bootstrap AWS** |
+| `AccessDenied` při deployi | Zkontrolujte `AWS_DEPLOY_*` secrets a policy u `mervin-cz-deploy` |
+| ACM certifikát `PENDING_VALIDATION` | Přidejte DNS CNAME z výstupu bootstrapu |
+| Upload „Failed to fetch“ | Nastavte `PUBLIC_UPLOAD_API_URL` |
+
+## Soubory
+
+| Soubor | Účel |
+|--------|------|
+| `scripts/bootstrap-aws.sh` | Orchestrace bootstrapu |
+| `scripts/setup-aws-infra.sh` | S3 + CloudFront |
+| `scripts/setup-acm-certificate.sh` | ACM certifikát |
+| `scripts/ensure-deploy-iam.sh` | IAM user deploy |
+| `scripts/deploy-aws.sh` | Průběžný deploy |
+| `src/data/aws-infra.json` | CloudFront ID, bucket (commitováno po bootstrapu) |
