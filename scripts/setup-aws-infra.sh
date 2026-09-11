@@ -135,6 +135,33 @@ ensure_oac() {
   echo "$oac_id"
 }
 
+apply_bucket_cors() {
+  local cloudfront_domain="$1"
+  local cors_file
+  cors_file="$(mktemp)"
+
+  jq -n \
+    --arg cf "https://${cloudfront_domain}" \
+    --arg aliases "${CLOUDFRONT_ALIASES:-}" \
+    '{
+      CORSRules: [{
+        AllowedHeaders: ["*"],
+        AllowedMethods: ["GET", "PUT", "HEAD"],
+        AllowedOrigins: (
+          ["https://www.mervin-cz.com", "https://mervin-cz.com", "http://localhost:4321"] +
+          (if $cf != "https://" then [$cf] else [] end) +
+          ($aliases | split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0)) | map(if startswith("http") then . else "https://" + . end))
+        ),
+        ExposeHeaders: ["ETag"],
+        MaxAgeSeconds: 3000
+      }]
+    }' > "$cors_file"
+
+  aws s3api put-bucket-cors --bucket "$S3_BUCKET" --cors-configuration "file://${cors_file}"
+  rm -f "$cors_file"
+  echo "Applied S3 CORS for browser uploads"
+}
+
 apply_bucket_policy() {
   local distribution_id="$1"
   local policy
@@ -332,6 +359,9 @@ fi
 
 echo "==> Applying bucket policy"
 apply_bucket_policy "$DISTRIBUTION_ID"
+
+echo "==> Applying S3 CORS for upload portal"
+apply_bucket_cors "$DOMAIN_NAME"
 
 node -e "
 const fs = require('fs');

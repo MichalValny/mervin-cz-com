@@ -124,7 +124,8 @@ Detailní popis: [`UPLOAD_SETUP.md`](UPLOAD_SETUP.md)
 | `CloudFront distribution not found` | Spusťte **Bootstrap AWS** |
 | `AccessDenied` při deployi | Zkontrolujte `AWS_DEPLOY_*` secrets a policy u `mervin-cz-deploy` |
 | ACM certifikát `PENDING_VALIDATION` | Přidejte DNS CNAME z výstupu bootstrapu |
-| Upload „Failed to fetch“ | Nastavte `PUBLIC_UPLOAD_API_URL` |
+| Upload „Failed to fetch“ / CORS na S3 | Znovu spusťte **Bootstrap AWS** — bucket potřebuje CORS pro přímý upload z prohlížeče |
+| Upload API nefunguje | Nastavte `PUBLIC_UPLOAD_API_URL` |
 
 ## Soubory
 
