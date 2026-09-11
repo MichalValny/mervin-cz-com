@@ -24,13 +24,13 @@ V repozitáři **Settings → Secrets and variables → Actions**:
 
 ### `UPLOAD_GITHUB_TOKEN` — povinná oprávnění
 
-Token musí umět spustit workflow `process-upload.yml` přes API. Bez toho `/complete` vrátí chybu 502.
+Token musí umět spustit GitHub event `repository_dispatch` typu `process-upload`. Bez toho `/complete` vrátí chybu 502.
 
-**Classic PAT** (doporučeno): scopes `repo` + `workflow`
+**Classic PAT** (doporučeno): scope `repo`
 
 **Fine-grained PAT**:
 - Repository: `MichalValny/mervin-cz-com`
-- Permissions: **Actions: Read and write**, Metadata: Read
+- Permissions: **Contents: Read and write**, Metadata: Read
 
 Po změně tokenu znovu spusťte **Bootstrap AWS** — Lambda si načte novou hodnotu z secrets.
 
@@ -91,7 +91,7 @@ Po aktualizaci `src/data/upload-api.json` (nebo nastavení `PUBLIC_UPLOAD_API_UR
 | Chyba | Řešení |
 |-------|--------|
 | `Failed to fetch` / CORS při nahrávání fotek | S3 bucket nemá CORS pro `www.mervin-cz.com` — znovu spusťte **Bootstrap AWS** (nastaví CORS automaticky) |
-| `Požadavek selhal` / 502 na `/complete` | `UPLOAD_GITHUB_TOKEN` nemá oprávnění `workflow` / Actions — vytvořte nový PAT a znovu spusťte **Bootstrap AWS** |
+| `Požadavek selhal` / 502 na `/complete` | `UPLOAD_GITHUB_TOKEN` nemá scope `repo` / Contents — vytvořte nový PAT a znovu spusťte **Bootstrap AWS** |
 | `Nepodařilo se spojit s upload API` | Zkontrolujte `PUBLIC_UPLOAD_API_URL` a `src/data/upload-api.json` |
 
 ## Schvalování

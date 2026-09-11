@@ -199,7 +199,6 @@ async function handleComplete(event, config) {
     await triggerUploadWorkflow({
       token: config.githubToken,
       repo: config.githubRepo,
-      workflow: config.githubWorkflow,
       uploadId,
       author: auth.username,
     });
@@ -207,7 +206,7 @@ async function handleComplete(event, config) {
     console.error('GitHub workflow dispatch failed:', error);
     const message = error instanceof Error ? error.message : 'Nepodařilo se spustit GitHub workflow.';
     return jsonResponse(502, {
-      error: 'Nepodařilo se odeslat příspěvek ke schválení. Zkontrolujte UPLOAD_GITHUB_TOKEN v GitHub Secrets a znovu spusťte Bootstrap AWS.',
+      error: 'Nepodařilo se odeslat příspěvek ke schválení. Zkontrolujte UPLOAD_GITHUB_TOKEN (scope repo) v GitHub Secrets a znovu spusťte Bootstrap AWS.',
       detail: message,
     }, event.headers?.origin, config.allowedOrigins);
   }
