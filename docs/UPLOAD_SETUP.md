@@ -20,7 +20,19 @@ V repozitáři **Settings → Secrets and variables → Actions**:
 | `UPLOAD_PASSWORD_MICHAL` | Vaše upload heslo |
 | `UPLOAD_PASSWORD_HORAK` | Heslo pro Hořáka |
 | `UPLOAD_JWT_SECRET` | Náhodný řetězec (např. `openssl rand -hex 32`) |
-| `UPLOAD_GITHUB_TOKEN` | GitHub PAT s oprávněním `repo` a `workflow` |
+| `UPLOAD_GITHUB_TOKEN` | GitHub PAT pro spuštění workflow `process-upload.yml` (viz níže) |
+
+### `UPLOAD_GITHUB_TOKEN` — povinná oprávnění
+
+Token musí umět spustit workflow `process-upload.yml` přes API. Bez toho `/complete` vrátí chybu 502.
+
+**Classic PAT** (doporučeno): scopes `repo` + `workflow`
+
+**Fine-grained PAT**:
+- Repository: `MichalValny/mervin-cz-com`
+- Permissions: **Actions: Read and write**, Metadata: Read
+
+Po změně tokenu znovu spusťte **Bootstrap AWS** — Lambda si načte novou hodnotu z secrets.
 
 `AWS_DEPLOY_ACCESS_KEY_ID` a `AWS_DEPLOY_SECRET_ACCESS_KEY` (uživatel `mervin-cz-deploy`) se používají pro stažení fotek ze S3 ve workflow `process-upload.yml`.
 
@@ -79,6 +91,7 @@ Po aktualizaci `src/data/upload-api.json` (nebo nastavení `PUBLIC_UPLOAD_API_UR
 | Chyba | Řešení |
 |-------|--------|
 | `Failed to fetch` / CORS při nahrávání fotek | S3 bucket nemá CORS pro `www.mervin-cz.com` — znovu spusťte **Bootstrap AWS** (nastaví CORS automaticky) |
+| `Požadavek selhal` / 502 na `/complete` | `UPLOAD_GITHUB_TOKEN` nemá oprávnění `workflow` / Actions — vytvořte nový PAT a znovu spusťte **Bootstrap AWS** |
 | `Nepodařilo se spojit s upload API` | Zkontrolujte `PUBLIC_UPLOAD_API_URL` a `src/data/upload-api.json` |
 
 ## Schvalování

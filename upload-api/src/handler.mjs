@@ -195,13 +195,22 @@ async function handleComplete(event, config) {
   meta.status = 'ready';
   await putJson(config.bucket, metaKey, meta);
 
-  await triggerUploadWorkflow({
-    token: config.githubToken,
-    repo: config.githubRepo,
-    workflow: config.githubWorkflow,
-    uploadId,
-    author: auth.username,
-  });
+  try {
+    await triggerUploadWorkflow({
+      token: config.githubToken,
+      repo: config.githubRepo,
+      workflow: config.githubWorkflow,
+      uploadId,
+      author: auth.username,
+    });
+  } catch (error) {
+    console.error('GitHub workflow dispatch failed:', error);
+    const message = error instanceof Error ? error.message : 'Nepodařilo se spustit GitHub workflow.';
+    return jsonResponse(502, {
+      error: 'Nepodařilo se odeslat příspěvek ke schválení. Zkontrolujte UPLOAD_GITHUB_TOKEN v GitHub Secrets a znovu spusťte Bootstrap AWS.',
+      detail: message,
+    }, event.headers?.origin, config.allowedOrigins);
+  }
 
   return jsonResponse(200, {
     ok: true,
@@ -223,6 +232,20 @@ export async function handler(event) {
   const origin = event.headers?.origin ?? event.headers?.Origin ?? '';
   const method = event.requestContext?.http?.method ?? event.httpMethod ?? 'GET';
   const path = getPath(event);
+
+  try {
+    return await routeRequest(event, config, origin, method, path);
+  } catch (error) {
+    console.error('Unhandled upload API error:', error);
+    const message = error instanceof Error ? error.message : 'Neočekávaná chyba upload API.';
+    return jsonResponse(500, {
+      error: 'Interní chyba upload služby.',
+      detail: message,
+    }, origin, config.allowedOrigins);
+  }
+}
+
+async function routeRequest(event, config, origin, method, path) {
 
   if (method === 'OPTIONS') {
     return {

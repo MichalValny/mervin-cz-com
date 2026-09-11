@@ -196,7 +196,8 @@ const apiBase = resolveUploadApiUrl();
       }
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error ?? 'Požadavek selhal.');
+        const detail = typeof data.detail === 'string' && data.detail ? ` ${data.detail}` : '';
+        throw new Error(`${data.error ?? 'Požadavek selhal.'}${detail}`);
       }
       return data;
     }
