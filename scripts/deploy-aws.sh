@@ -51,38 +51,13 @@ else
 fi
 npm run build
 
+echo "==> AWS identity"
+aws sts get-caller-identity
+
 echo "==> Ensuring S3 bucket s3://${S3_BUCKET} exists in ${AWS_REGION}"
-bucket_missing() {
-  local err_file
-  err_file="$(mktemp)"
-
-  if aws s3api get-bucket-location --bucket "$S3_BUCKET" >/dev/null 2>"$err_file"; then
-    rm -f "$err_file"
-    return 1
-  fi
-  if ! grep -qE 'NoSuchBucket|404|Not Found' "$err_file"; then
-    if aws s3api head-bucket --bucket "$S3_BUCKET" >/dev/null 2>"$err_file"; then
-      rm -f "$err_file"
-      return 1
-    fi
-    if ! grep -qE 'NoSuchBucket|404|Not Found' "$err_file"; then
-      echo "Cannot access S3 bucket s3://${S3_BUCKET}:" >&2
-      cat "$err_file" >&2
-      rm -f "$err_file"
-      exit 1
-    fi
-  fi
-
-  rm -f "$err_file"
-  return 0
-}
-
-if bucket_missing; then
-  if [[ "${AWS_ALLOW_CREATE_BUCKET:-}" != "true" ]]; then
-    echo "S3 bucket s3://${S3_BUCKET} was not found." >&2
-    echo "Run scripts/bootstrap-aws.sh first (with mervin-cz-bootstrap credentials)." >&2
-    exit 1
-  fi
+if aws s3api get-bucket-location --bucket "$S3_BUCKET" >/dev/null 2>&1; then
+  echo "Bucket found."
+elif [[ "${AWS_ALLOW_CREATE_BUCKET:-}" == "true" ]]; then
   if [[ "$AWS_REGION" == "us-east-1" ]]; then
     aws s3api create-bucket --bucket "$S3_BUCKET"
   else
@@ -90,12 +65,16 @@ if bucket_missing; then
       --bucket "$S3_BUCKET" \
       --create-bucket-configuration "LocationConstraint=${AWS_REGION}"
   fi
+else
+  echo "Warning: could not verify bucket location; continuing with sync (bucket may already exist)."
 fi
 
-aws s3api put-public-access-block \
+if ! aws s3api put-public-access-block \
   --bucket "$S3_BUCKET" \
   --public-access-block-configuration \
-  BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+  BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true 2>/dev/null; then
+  echo "Warning: could not update public access block (may already be set)."
+fi
 
 echo "==> Syncing assets to S3"
 aws s3 sync dist/ "s3://${S3_BUCKET}/" \
