@@ -48,7 +48,11 @@ jobs:
         env:
           UPLOAD_S3_BUCKET: ${{ vars.UPLOAD_S3_BUCKET || 'web-mervin-cz-com' }}
           UPLOAD_S3_PREFIX: ${{ vars.UPLOAD_S3_PREFIX || 'uploads-staging' }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
         run: |
+          echo "Bucket: ${UPLOAD_S3_BUCKET}"
+          echo "Prefix: ${UPLOAD_S3_PREFIX}"
+          echo "Upload ID: ${UPLOAD_ID}"
           python3 scripts/process-upload.py "$UPLOAD_ID" > upload-result.json
           cat upload-result.json
           {

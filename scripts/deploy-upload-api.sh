@@ -165,14 +165,31 @@ ensure_lambda_role() {
     --role-name "$ROLE_NAME" \
     --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
+  UPLOAD_PREFIX="${UPLOAD_S3_PREFIX:-uploads-staging}"
+  UPLOAD_PREFIX="${UPLOAD_PREFIX#/}"
+  UPLOAD_PREFIX="${UPLOAD_PREFIX%/}"
+
   POLICY_DOC="$(cat <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
     {
       "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": "arn:aws:s3:::${UPLOAD_S3_BUCKET}",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": ["${UPLOAD_PREFIX}/*"]
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
       "Action": ["s3:PutObject", "s3:GetObject", "s3:HeadObject"],
-      "Resource": "arn:aws:s3:::${UPLOAD_S3_BUCKET}/${UPLOAD_S3_PREFIX}/*"
+      "Resource": [
+        "arn:aws:s3:::${UPLOAD_S3_BUCKET}/${UPLOAD_PREFIX}/*",
+        "arn:aws:s3:::${UPLOAD_S3_BUCKET}/${UPLOAD_PREFIX}/*/*"
+      ]
     }
   ]
 }
