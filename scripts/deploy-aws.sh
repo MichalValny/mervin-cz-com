@@ -2,6 +2,7 @@
 set -euo pipefail
 
 # Deploy static Astro build to S3 and ensure a CloudFront distribution exists.
+# Requires mervin-cz-deploy IAM policy (see docs/iam/mervin-cz-deploy-policy.json).
 #
 # Required environment variables:
 #   AWS_ACCESS_KEY_ID
