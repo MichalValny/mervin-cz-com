@@ -74,6 +74,13 @@ Po aktualizaci `src/data/upload-api.json` (nebo nastavení `PUBLIC_UPLOAD_API_UR
 5. Workflow stáhne fotky, vytvoří článek + galerii, otevře PR
 6. Po merge PR proběhne běžný deploy na CloudFront
 
+## Troubleshooting
+
+| Chyba | Řešení |
+|-------|--------|
+| `Failed to fetch` / CORS při nahrávání fotek | S3 bucket nemá CORS pro `www.mervin-cz.com` — znovu spusťte **Bootstrap AWS** (nastaví CORS automaticky) |
+| `Nepodařilo se spojit s upload API` | Zkontrolujte `PUBLIC_UPLOAD_API_URL` a `src/data/upload-api.json` |
+
 ## Schvalování
 
 Každý upload vytvoří PR s názvem `Upload: {nadpis}`. Sloučením PR se článek publikuje.
