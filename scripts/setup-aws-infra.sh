@@ -32,16 +32,43 @@ ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
 ORIGIN_ID="S3-${S3_BUCKET}"
 OAC_NAME="web-mervin-cz-com-oac"
 
-echo "==> Ensuring S3 bucket s3://${S3_BUCKET}"
-if ! aws s3api get-bucket-location --bucket "$S3_BUCKET" >/dev/null 2>&1; then
+ensure_s3_bucket() {
+  if aws s3api head-bucket --bucket "$S3_BUCKET" >/dev/null 2>&1; then
+    echo "Bucket s3://${S3_BUCKET} already exists."
+    return 0
+  fi
+
+  local err_file
+  err_file="$(mktemp)"
   if [[ "$AWS_REGION" == "us-east-1" ]]; then
-    aws s3api create-bucket --bucket "$S3_BUCKET"
+    aws s3api create-bucket --bucket "$S3_BUCKET" 2>"$err_file" || true
   else
     aws s3api create-bucket \
       --bucket "$S3_BUCKET" \
-      --create-bucket-configuration "LocationConstraint=${AWS_REGION}"
+      --create-bucket-configuration "LocationConstraint=${AWS_REGION}" \
+      2>"$err_file" || true
   fi
-fi
+
+  if aws s3api head-bucket --bucket "$S3_BUCKET" >/dev/null 2>&1; then
+    rm -f "$err_file"
+    echo "Bucket s3://${S3_BUCKET} is ready."
+    return 0
+  fi
+
+  if grep -qE 'BucketAlreadyOwnedByYou|BucketAlreadyExists' "$err_file"; then
+    rm -f "$err_file"
+    echo "Bucket s3://${S3_BUCKET} already exists (owned by this account)."
+    return 0
+  fi
+
+  echo "Failed to ensure S3 bucket s3://${S3_BUCKET}:" >&2
+  cat "$err_file" >&2
+  rm -f "$err_file"
+  exit 1
+}
+
+echo "==> Ensuring S3 bucket s3://${S3_BUCKET}"
+ensure_s3_bucket
 
 aws s3api put-public-access-block \
   --bucket "$S3_BUCKET" \
