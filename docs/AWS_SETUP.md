@@ -29,7 +29,15 @@ Soubor v repozitáři: [`docs/iam/mervin-cz-deploy-policy.json`](iam/mervin-cz-d
 
 IAM → Users → `mervin-cz-deploy` → Add permissions → Create inline policy → JSON vložit z toho souboru.
 
-## 2. První deploy (u vás na PC)
+## 2. První deploy
+
+### Varianta A – bez lokálního PC (doporučeno)
+
+1. Nastavte **GitHub Secrets a Variables** (viz sekce 3 a 4) — klíče od **`mervin-cz-bootstrap`**.
+2. Spusťte **Actions → Bootstrap AWS → Run workflow**.
+3. Po úspěchu v Secrets **vyměňte** AWS klíče za **`mervin-cz-deploy`** a bootstrap user deaktivujte.
+
+### Varianta B – lokálně na PC
 
 Nainstalujte: AWS CLI, Node.js 22, npm, jq, python3, git.
 
