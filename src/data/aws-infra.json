@@ -1,7 +1,7 @@
 {
-  "accountId": "777171524899",
   "bucket": "web-mervin-cz-com",
+  "distributionId": "EXDSLGYRCTBIR",
+  "domainName": "d33m94if9jcznd.cloudfront.net",
   "region": "us-east-1",
-  "distributionId": "",
-  "domainName": ""
+  "accountId": "777171524899"
 }
