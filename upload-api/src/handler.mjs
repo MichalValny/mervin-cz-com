@@ -134,10 +134,14 @@ async function handlePrepare(event, config) {
 
   const uploadId = crypto.randomUUID();
   const prefix = uploadPrefix(config.prefix, uploadId);
+  const metaKey = `${prefix}/meta.json`;
   const uploadMeta = {
     uploadId,
     author: auth.username,
     createdAt: new Date().toISOString(),
+    storageBucket: config.bucket,
+    storagePrefix: config.prefix,
+    metaKey,
     ...validated.value,
     photoKeys: [],
   };
@@ -155,7 +159,7 @@ async function handlePrepare(event, config) {
     });
   }
 
-  await putJson(config.bucket, `${prefix}/meta.json`, uploadMeta);
+  await putJson(config.bucket, metaKey, uploadMeta);
 
   return jsonResponse(200, {
     uploadId,

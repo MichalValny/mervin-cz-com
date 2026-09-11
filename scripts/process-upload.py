@@ -209,6 +209,7 @@ def resolve_meta_key(s3, bucket: str, prefix: str, upload_id: str) -> str:
 
     normalized_id = normalize_upload_id(upload_id)
     normalized_prefix = normalize_prefix(prefix)
+    permission_errors: list[str] = []
     candidates = [
         staging_object_key(prefix, upload_id, "meta.json"),
         f"{normalized_prefix}/{normalized_id}/meta.json",
@@ -224,7 +225,10 @@ def resolve_meta_key(s3, bucket: str, prefix: str, upload_id: str) -> str:
             return meta_key
         except botocore.exceptions.ClientError as error:
             code = error.response.get("Error", {}).get("Code")
-            if code not in {"404", "NoSuchKey", "NotFound", "403", "AccessDenied"}:
+            if code in {"403", "AccessDenied"}:
+                permission_errors.append(meta_key)
+                continue
+            if code not in {"404", "NoSuchKey", "NotFound"}:
                 raise
 
     response = s3.list_objects_v2(
@@ -243,22 +247,85 @@ def resolve_meta_key(s3, bucket: str, prefix: str, upload_id: str) -> str:
             return meta_key
         except botocore.exceptions.ClientError as error:
             code = error.response.get("Error", {}).get("Code")
-            if code not in {"404", "NoSuchKey", "NotFound", "403", "AccessDenied"}:
+            if code in {"403", "AccessDenied"}:
+                permission_errors.append(meta_key)
+                continue
+            if code not in {"404", "NoSuchKey", "NotFound"}:
                 raise
+
+    search_prefixes = []
+    for candidate in [normalized_prefix, "uploads-staging", "upload-staging"]:
+        if candidate and candidate not in search_prefixes:
+            search_prefixes.append(candidate)
+
+    for search_prefix in search_prefixes:
+        scan_prefix = f"{search_prefix}/"
+        paginator = s3.get_paginator("list_objects_v2")
+        for page in paginator.paginate(Bucket=bucket, Prefix=scan_prefix):
+            for item in page.get("Contents", []):
+                key = item.get("Key", "")
+                if not key.endswith("/meta.json"):
+                    continue
+                if f"/{normalized_id}/" not in key and not key.endswith(f"/{normalized_id}/meta.json"):
+                    continue
+                try:
+                    s3.head_object(Bucket=bucket, Key=key)
+                    return key
+                except botocore.exceptions.ClientError as error:
+                    code = error.response.get("Error", {}).get("Code")
+                    if code in {"403", "AccessDenied"}:
+                        permission_errors.append(key)
+                        continue
+                    if code not in {"404", "NoSuchKey", "NotFound"}:
+                        raise
 
     listing_prefix = staging_object_key(prefix, upload_id)
     response = s3.list_objects_v2(Bucket=bucket, Prefix=f"{listing_prefix}/", MaxKeys=5)
     found_keys = [item["Key"] for item in response.get("Contents", []) if item.get("Key")]
+
+    folder_response = s3.list_objects_v2(
+        Bucket=bucket,
+        Prefix=f"{normalized_prefix}/",
+        Delimiter="/",
+    )
+    visible_folders = [
+        entry.get("Prefix", "").rstrip("/").split("/")[-1]
+        for entry in folder_response.get("CommonPrefixes", [])
+        if entry.get("Prefix")
+    ]
+
     hint = ""
     if found_keys:
         hint = f" Found objects under s3://{bucket}/{listing_prefix}/: {', '.join(found_keys[:5])}."
     else:
         hint = f" No objects found under s3://{bucket}/{listing_prefix}/."
+    if visible_folders:
+        hint += f" Visible folders under {normalized_prefix}/: {', '.join(visible_folders[:10])}."
+    else:
+        hint += f" No folders visible under s3://{bucket}/{normalized_prefix}/."
+
+    if permission_errors:
+        raise SystemExit(
+            "Cannot read upload bundle from S3 (AccessDenied). "
+            f"Bucket {bucket}, tried keys including {permission_errors[0]}. "
+            "Use AWS credentials for the same account as the upload API, or rerun Bootstrap AWS."
+        )
 
     raise SystemExit(
         "Upload bundle not found in S3. "
         f"Tried keys: {', '.join(seen)} in bucket {bucket}.{hint} "
-        "Check UPLOAD_S3_BUCKET / UPLOAD_S3_PREFIX and the upload ID."
+        "Verify the upload ID from S3 and that UPLOAD_S3_BUCKET / UPLOAD_S3_PREFIX match the upload API."
+    )
+
+
+def log_aws_identity(s3) -> None:
+    import boto3
+
+    sts = boto3.client("sts", region_name=s3.meta.region_name)
+    identity = sts.get_caller_identity()
+    print(
+        f"AWS identity: account={identity.get('Account')} arn={identity.get('Arn')}",
+        file=sys.stderr,
     )
 
 
@@ -273,6 +340,7 @@ def download_staging_from_s3(upload_id: str, bucket: str, prefix: str) -> tuple[
     photos_path = staging_path / "photos"
     photos_path.mkdir(parents=True, exist_ok=True)
 
+    log_aws_identity(s3)
     print(
         f"Downloading upload bundle from s3://{bucket}/{normalized_prefix}/{normalized_id}/ "
         f"(region={region})",
@@ -283,8 +351,9 @@ def download_staging_from_s3(upload_id: str, bucket: str, prefix: str) -> tuple[
     meta_obj = s3.get_object(Bucket=bucket, Key=meta_key)
     meta = json.loads(meta_obj["Body"].read().decode("utf-8"))
 
+    effective_bucket = meta.get("storageBucket", bucket)
     for index, key in enumerate(meta.get("photoKeys", []), start=1):
-        obj = s3.get_object(Bucket=bucket, Key=key)
+        obj = s3.get_object(Bucket=effective_bucket, Key=key)
         suffix = Path(key).suffix or ".jpg"
         target = photos_path / f"{index:03d}{suffix}"
         target.write_bytes(obj["Body"].read())
