@@ -30,7 +30,7 @@ INFRA_FILE="${ROOT_DIR}/src/data/aws-infra.json"
 
 ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
 ORIGIN_ID="S3-${S3_BUCKET}"
-OAC_NAME="mervin-cz-com-777171524899-oac"
+OAC_NAME="web-mervin-cz-com-oac"
 
 ensure_s3_bucket() {
   if aws s3api head-bucket --bucket "$S3_BUCKET" >/dev/null 2>&1; then
@@ -171,7 +171,7 @@ s3_origin_domain() {
 }
 
 ensure_index_rewrite_function() {
-  local function_name="mervin-cz-com-777171524899-index-rewrite"
+  local function_name="web-mervin-cz-com-index-rewrite"
   local etag
   local existing
   existing="$(aws cloudfront list-functions \

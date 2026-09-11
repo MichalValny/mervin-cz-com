@@ -31,9 +31,9 @@ V repozitáři **Settings → Secrets and variables → Actions**:
 | Variable | Příklad |
 |----------|---------|
 | `PUBLIC_UPLOAD_API_URL` | volitelné – přepíše `src/data/upload-api.json` |
-| `UPLOAD_S3_BUCKET` | `mervin-cz-com-777171524899` (volitelné) |
+| `UPLOAD_S3_BUCKET` | `web-mervin-cz-com` (volitelné) |
 | `UPLOAD_S3_PREFIX` | `uploads-staging` (volitelné) |
-| `S3_BUCKET` | `mervin-cz-com-777171524899` |
+| `S3_BUCKET` | `web-mervin-cz-com` |
 
 Správnou API URL z AWS zjistíte:
 

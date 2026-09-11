@@ -13,7 +13,7 @@ set -euo pipefail
 #
 # Optional:
 #   AWS_REGION (default: us-east-1)
-#   UPLOAD_S3_BUCKET (default: mervin-cz-com-777171524899)
+#   UPLOAD_S3_BUCKET (default: web-mervin-cz-com)
 #   UPLOAD_S3_PREFIX (default: uploads-staging)
 #   UPLOAD_API_NAME (default: mervin-upload-api)
 #   GITHUB_UPLOAD_REPO (default: MichalValny/mervin-cz-com)
