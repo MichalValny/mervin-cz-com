@@ -51,11 +51,32 @@ fi
 npm run build
 
 echo "==> Ensuring S3 bucket s3://${S3_BUCKET} exists in ${AWS_REGION}"
-bucket_exists() {
-  aws s3api get-bucket-location --bucket "$S3_BUCKET" >/dev/null 2>&1
+bucket_missing() {
+  local err_file
+  err_file="$(mktemp)"
+
+  if aws s3api get-bucket-location --bucket "$S3_BUCKET" >/dev/null 2>"$err_file"; then
+    rm -f "$err_file"
+    return 1
+  fi
+  if ! grep -qE 'NoSuchBucket|404|Not Found' "$err_file"; then
+    if aws s3api head-bucket --bucket "$S3_BUCKET" >/dev/null 2>"$err_file"; then
+      rm -f "$err_file"
+      return 1
+    fi
+    if ! grep -qE 'NoSuchBucket|404|Not Found' "$err_file"; then
+      echo "Cannot access S3 bucket s3://${S3_BUCKET}:" >&2
+      cat "$err_file" >&2
+      rm -f "$err_file"
+      exit 1
+    fi
+  fi
+
+  rm -f "$err_file"
+  return 0
 }
 
-if ! bucket_exists; then
+if bucket_missing; then
   if [[ "${AWS_ALLOW_CREATE_BUCKET:-}" != "true" ]]; then
     echo "S3 bucket s3://${S3_BUCKET} was not found." >&2
     echo "Run scripts/bootstrap-aws.sh first (with mervin-cz-bootstrap credentials)." >&2
