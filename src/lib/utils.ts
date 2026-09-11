@@ -65,6 +65,15 @@ export function formatDateShort(dateStr: string): string {
 }
 
 const SITE_URL = 'https://www.mervin-cz.com';
+const LEGACY_WORDPRESS_UPLOAD = /\/wp-content\/uploads\//i;
+const WORDPRESS_PLACEHOLDER = /Will-You-Be-My-Best-Man\.png/i;
+
+export function isUsablePostImage(url: string | null | undefined): boolean {
+  if (!url) return false;
+  if (LEGACY_WORDPRESS_UPLOAD.test(url)) return false;
+  if (WORDPRESS_PLACEHOLDER.test(url)) return false;
+  return true;
+}
 
 export function resolveImageUrl(url: string | null): string | null {
   if (!url) return null;
@@ -75,15 +84,22 @@ export function resolveImageUrl(url: string | null): string | null {
 export function getPostImage(post: {
   featuredImage: string | null;
   galleries: string[];
-  localGalleries?: { images?: { src: string }[] }[];
+  localGalleries?: { slug?: string; images?: { src: string }[] }[];
 }): string | null {
-  if (post.featuredImage) return post.featuredImage;
-  const local = post.localGalleries?.[0]?.images?.[0]?.src;
+  if (isUsablePostImage(post.featuredImage)) return post.featuredImage;
+
+  const gallery = post.localGalleries?.[0];
+  const local = gallery?.images?.[0]?.src;
   if (local) return local;
-  const gallery = post.galleries[0];
-  if (!gallery) return null;
-  const match = gallery.match(/object data="([^"]+)"/);
-  return match?.[1] ?? null;
+  if (gallery?.slug) {
+    return `/galleries/${gallery.slug}/featured.jpg`;
+  }
+
+  const widget = post.galleries[0];
+  if (!widget) return null;
+  const match = widget.match(/object data="([^"]+)"/);
+  const widgetUrl = match?.[1] ?? null;
+  return isUsablePostImage(widgetUrl) ? widgetUrl : null;
 }
 
 export function getExcerpt(post: { excerpt: string; content: string }, maxLength = 160): string {
