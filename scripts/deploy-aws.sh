@@ -9,8 +9,8 @@ set -euo pipefail
 #
 # Optional:
 #   AWS_REGION (default: us-east-1)
-#   S3_BUCKET (default: mervin-cz-com)
-#   CLOUDFRONT_COMMENT (default: mervin-cz-com static site)
+#   S3_BUCKET (default: web-mervin-cz-com)
+#   CLOUDFRONT_COMMENT (default: web-mervin-cz-com static site)
 #   ACM_CERTIFICATE_ARN (for custom domain aliases, must be in us-east-1)
 #   CLOUDFRONT_ALIASES (comma-separated, e.g. www.mervin-cz.com,mervin-cz.com)
 
@@ -18,10 +18,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 export PATH="${HOME}/.local/bin:${PATH}"
-
-: "${AWS_REGION:=us-east-1}"
-: "${S3_BUCKET:=mervin-cz-com}"
-: "${CLOUDFRONT_COMMENT:=mervin-cz-com static site}"
+# shellcheck source=aws-env.defaults.sh
+source "${ROOT_DIR}/scripts/aws-env.defaults.sh"
 
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -90,7 +88,7 @@ STATE_FILE="${STATE_DIR}/cloudfront.json"
 
 ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
 ORIGIN_ID="S3-${S3_BUCKET}"
-OAC_NAME="mervin-cz-com-oac"
+OAC_NAME="web-mervin-cz-com-oac"
 
 find_distribution_id() {
   if [[ -f "$STATE_FILE" ]]; then
@@ -167,7 +165,7 @@ s3_origin_domain() {
 }
 
 ensure_index_rewrite_function() {
-  local function_name="mervin-cz-com-index-rewrite"
+  local function_name="web-mervin-cz-com-index-rewrite"
   local etag
   local existing
   existing="$(aws cloudfront list-functions \

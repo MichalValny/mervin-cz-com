@@ -41,7 +41,7 @@ jobs:
       - name: Build post files from upload
         id: build
         env:
-          UPLOAD_S3_BUCKET: ${{ vars.UPLOAD_S3_BUCKET || 'mervin-cz-com' }}
+          UPLOAD_S3_BUCKET: ${{ vars.UPLOAD_S3_BUCKET || 'web-mervin-cz-com' }}
           UPLOAD_S3_PREFIX: ${{ vars.UPLOAD_S3_PREFIX || 'uploads-staging' }}
         run: |
           python3 scripts/process-upload.py "${{ inputs.upload_id }}" > upload-result.json

@@ -209,7 +209,7 @@ def main() -> None:
         raise SystemExit("Usage: process-upload.py <upload-id>")
 
     upload_id = sys.argv[1]
-    bucket = __import__("os").environ.get("UPLOAD_S3_BUCKET", "mervin-cz-com")
+    bucket = __import__("os").environ.get("UPLOAD_S3_BUCKET", "web-mervin-cz-com")
     prefix = __import__("os").environ.get("UPLOAD_S3_PREFIX", "uploads-staging")
 
     staging_path, meta = download_staging_from_s3(upload_id, bucket, prefix)
