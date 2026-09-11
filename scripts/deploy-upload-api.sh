@@ -63,12 +63,12 @@ validate_github_token() {
 
   if [[ "$status" != "200" ]]; then
     echo "WARNING: UPLOAD_GITHUB_TOKEN cannot read workflow process-upload.yml (HTTP ${status})." >&2
-    echo "Use a classic PAT with repo+workflow scopes, or fine-grained PAT with Actions: Read and write." >&2
+    echo "Use a classic PAT with repo scope, or fine-grained PAT with Contents: Read and write." >&2
     return 0
   fi
 
-  if [[ -n "$scopes" && "$scopes" != *"workflow"* ]]; then
-    echo "WARNING: UPLOAD_GITHUB_TOKEN is missing the workflow scope (found: ${scopes})." >&2
+  if [[ -n "$scopes" && "$scopes" != *"repo"* ]]; then
+    echo "WARNING: UPLOAD_GITHUB_TOKEN is missing the repo scope (found: ${scopes})." >&2
     echo "Upload /complete will fail until the token is updated and Bootstrap AWS is rerun." >&2
   fi
 }
@@ -82,7 +82,6 @@ const payload = {
     UPLOAD_PASSWORD_HORAK: process.env.UPLOAD_PASSWORD_HORAK,
     UPLOAD_GITHUB_TOKEN: process.env.UPLOAD_GITHUB_TOKEN,
     GITHUB_UPLOAD_REPO: process.env.GITHUB_UPLOAD_REPO,
-    GITHUB_UPLOAD_WORKFLOW: process.env.GITHUB_UPLOAD_WORKFLOW,
     UPLOAD_S3_BUCKET: process.env.UPLOAD_S3_BUCKET,
     UPLOAD_S3_PREFIX: process.env.UPLOAD_S3_PREFIX,
     UPLOAD_ALLOWED_ORIGINS: process.env.UPLOAD_ALLOWED_ORIGINS,

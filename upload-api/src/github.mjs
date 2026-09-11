@@ -1,30 +1,27 @@
-function workflowDispatchError(status, text, repo, workflow) {
+function dispatchError(status, text, repo, method) {
   if (status === 403) {
     return new Error(
-      `GitHub workflow dispatch failed (${status}): token nemá oprávnění. UPLOAD_GITHUB_TOKEN musí mít scope repo + workflow (classic PAT) nebo Actions: Read and write (fine-grained PAT). ${text}`
+      `GitHub ${method} failed (${status}): token nemá oprávnění. UPLOAD_GITHUB_TOKEN musí mít scope repo (classic PAT) nebo Contents: Read and write (fine-grained PAT). ${text}`
     );
   }
-  if (status === 404) {
-    return new Error(
-      `GitHub workflow dispatch failed (${status}): workflow ${workflow} nenalezen v ${repo}. ${text}`
-    );
-  }
-  return new Error(`GitHub workflow dispatch failed (${status}): ${text}`);
+  return new Error(`GitHub ${method} failed (${status}): ${text}`);
 }
 
-export async function triggerUploadWorkflow({ token, repo, workflow, uploadId, author }) {
+export async function triggerUploadWorkflow({ token, repo, uploadId, author }) {
   const [owner, name] = repo.split('/');
-  const response = await fetch(`https://api.github.com/repos/${owner}/${name}/actions/workflows/${encodeURIComponent(workflow)}/dispatches`, {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    'Content-Type': 'application/json',
+  };
+
+  const response = await fetch(`https://api.github.com/repos/${owner}/${name}/dispatches`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({
-      ref: 'main',
-      inputs: {
+      event_type: 'process-upload',
+      client_payload: {
         upload_id: uploadId,
         author,
       },
@@ -33,6 +30,6 @@ export async function triggerUploadWorkflow({ token, repo, workflow, uploadId, a
 
   if (!response.ok) {
     const text = await response.text();
-    throw workflowDispatchError(response.status, text, repo, workflow);
+    throw dispatchError(response.status, text, repo, 'repository_dispatch');
   }
 }

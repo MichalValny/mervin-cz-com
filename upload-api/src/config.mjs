@@ -17,7 +17,6 @@ export function getConfig() {
     },
     githubToken: process.env.UPLOAD_GITHUB_TOKEN?.trim(),
     githubRepo: process.env.GITHUB_UPLOAD_REPO ?? 'MichalValny/mervin-cz-com',
-    githubWorkflow: process.env.GITHUB_UPLOAD_WORKFLOW ?? 'process-upload.yml',
     allowedOrigins,
     maxFiles: Number(process.env.UPLOAD_MAX_FILES ?? DEFAULT_MAX_FILES),
     maxFileBytes: Number(process.env.UPLOAD_MAX_FILE_BYTES ?? DEFAULT_MAX_FILE_BYTES),
