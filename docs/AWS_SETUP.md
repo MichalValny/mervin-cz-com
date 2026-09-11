@@ -21,11 +21,11 @@ Kompletní infrastruktura se vytvoří **jedním kliknutím v GitHub Actions** �
 | Resource | Název |
 |----------|-------|
 | AWS Account ID | `777171524899` |
-| S3 bucket | `web-mervin-cz-com` |
+| S3 bucket | `mervin-cz-com-777171524899` (název obsahuje account ID — S3 názvy jsou globální) |
 | Region | `us-east-1` |
 | Bootstrap IAM user | `mervin-cz-bootstrap` |
 | Deploy IAM user | `mervin-cz-deploy` |
-| CloudFront comment | `web-mervin-cz-com static site` |
+| CloudFront comment | `mervin-cz-com-777171524899 static site` |
 | Lambda | `mervin-upload-api` |
 | Upload S3 prefix | `uploads-staging/` |
 
@@ -65,8 +65,8 @@ Kompletní infrastruktura se vytvoří **jedním kliknutím v GitHub Actions** �
 
 | Variable | Hodnota |
 |----------|---------|
-| `S3_BUCKET` | `web-mervin-cz-com` |
-| `UPLOAD_S3_BUCKET` | `web-mervin-cz-com` |
+| `S3_BUCKET` | `mervin-cz-com-777171524899` |
+| `UPLOAD_S3_BUCKET` | `mervin-cz-com-777171524899` |
 | `AWS_REGION` | `us-east-1` |
 | `CLOUDFRONT_ALIASES` | (volitelné) `www.mervin-cz.com,mervin-cz.com` |
 | `ACM_CERTIFICATE_ARN` | (volitelné) nechte prázdné — bootstrap certifikát vyžádá |
