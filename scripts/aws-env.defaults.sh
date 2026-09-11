@@ -3,11 +3,11 @@
 
 : "${AWS_REGION:=us-east-1}"
 : "${AWS_ACCOUNT_ID:=777171524899}"
-: "${S3_BUCKET:=mervin-cz-com-777171524899}"
+: "${S3_BUCKET:=web-mervin-cz-com}"
 : "${UPLOAD_S3_BUCKET:=${S3_BUCKET}}"
 : "${UPLOAD_S3_PREFIX:=uploads-staging}"
 : "${UPLOAD_API_NAME:=mervin-upload-api}"
-: "${CLOUDFRONT_COMMENT:=mervin-cz-com-777171524899 static site}"
+: "${CLOUDFRONT_COMMENT:=web-mervin-cz-com static site}"
 : "${GITHUB_UPLOAD_REPO:=MichalValny/mervin-cz-com}"
 : "${DEPLOY_IAM_USER:=mervin-cz-deploy}"
 : "${BOOTSTRAP_IAM_USER:=mervin-cz-bootstrap}"

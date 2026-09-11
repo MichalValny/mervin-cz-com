@@ -21,11 +21,11 @@ Kompletní infrastruktura se vytvoří **jedním kliknutím v GitHub Actions** �
 | Resource | Název |
 |----------|-------|
 | AWS Account ID | `777171524899` |
-| S3 bucket | `mervin-cz-com-777171524899` (název obsahuje account ID — S3 názvy jsou globální) |
+| S3 bucket | `web-mervin-cz-com` |
 | Region | `us-east-1` |
 | Bootstrap IAM user | `mervin-cz-bootstrap` |
 | Deploy IAM user | `mervin-cz-deploy` |
-| CloudFront comment | `mervin-cz-com-777171524899 static site` |
+| CloudFront comment | `web-mervin-cz-com static site` |
 | Lambda | `mervin-upload-api` |
 | Upload S3 prefix | `uploads-staging/` |
 
@@ -57,7 +57,7 @@ Kompletní infrastruktura se vytvoří **jedním kliknutím v GitHub Actions** �
 | `UPLOAD_JWT_SECRET` | `openssl rand -hex 32` |
 | `UPLOAD_GITHUB_TOKEN` | GitHub PAT (`repo` + `workflow`) |
 
-> Zpětná kompatibilita: `deploy-aws.sh` akceptuje i staré názvy `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`.
+> **Důležité:** Smažte nebo deaktivujte staré secrets `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` z původního účtu `146240438812`. Deploy workflow je už nepoužívá.
 
 ## 3. GitHub Variables
 
@@ -65,8 +65,8 @@ Kompletní infrastruktura se vytvoří **jedním kliknutím v GitHub Actions** �
 
 | Variable | Hodnota |
 |----------|---------|
-| `S3_BUCKET` | `mervin-cz-com-777171524899` |
-| `UPLOAD_S3_BUCKET` | `mervin-cz-com-777171524899` |
+| `S3_BUCKET` | `web-mervin-cz-com` |
+| `UPLOAD_S3_BUCKET` | `web-mervin-cz-com` |
 | `AWS_REGION` | `us-east-1` |
 | `CLOUDFRONT_ALIASES` | (volitelné) `www.mervin-cz.com,mervin-cz.com` |
 | `ACM_CERTIFICATE_ARN` | (volitelné) nechte prázdné — bootstrap certifikát vyžádá |
@@ -75,9 +75,11 @@ Kompletní infrastruktura se vytvoří **jedním kliknutím v GitHub Actions** �
 
 ## 4. Bootstrap (první nasazení)
 
-1. Nastavte secrets `AWS_BOOTSTRAP_*` a upload secrets.
-2. (Volitelně) nastavte `CLOUDFRONT_ALIASES` pro vlastní doménu.
-3. Spusťte **Actions → Bootstrap AWS → Run workflow**.
+1. V účtu `777171524899` nastavte secrets `AWS_BOOTSTRAP_*` a upload secrets.
+2. V GitHub Variables nastavte `S3_BUCKET` a `UPLOAD_S3_BUCKET` na `web-mervin-cz-com`.
+3. Pokud bucket `web-mervin-cz-com` dříve existoval v jiném AWS účtu, musí být tam smazán (S3 názvy jsou globální).
+4. (Volitelně) nastavte `CLOUDFRONT_ALIASES` pro vlastní doménu.
+5. Spusťte **Actions → Bootstrap AWS → Run workflow**.
 
 Bootstrap automaticky:
 1. Vytvoří IAM uživatele `mervin-cz-deploy` s policy z [`docs/iam/mervin-cz-deploy-policy.json`](iam/mervin-cz-deploy-policy.json)
@@ -116,7 +118,8 @@ Detailní popis: [`UPLOAD_SETUP.md`](UPLOAD_SETUP.md)
 
 | Chyba | Řešení |
 |-------|--------|
-| `expected AWS account 777171524899` | Bootstrap secrets patří do jiného účtu |
+| `expected AWS account 777171524899` | Secrets patří do jiného účtu — zkontrolujte `AWS_BOOTSTRAP_*` nebo `AWS_DEPLOY_*` |
+| `BucketAlreadyExists` | Název bucketu drží jiný AWS účet — smažte bucket tam, nebo zvolte jiný název |
 | `CloudFront distribution not found` | Spusťte **Bootstrap AWS** |
 | `AccessDenied` při deployi | Zkontrolujte `AWS_DEPLOY_*` secrets a policy u `mervin-cz-deploy` |
 | ACM certifikát `PENDING_VALIDATION` | Přidejte DNS CNAME z výstupu bootstrapu |

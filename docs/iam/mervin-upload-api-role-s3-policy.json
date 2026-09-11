@@ -8,7 +8,7 @@
         "s3:GetObject",
         "s3:HeadObject"
       ],
-      "Resource": "arn:aws:s3:::mervin-cz-com-777171524899/uploads-staging/*"
+      "Resource": "arn:aws:s3:::web-mervin-cz-com/uploads-staging/*"
     }
   ]
 }
