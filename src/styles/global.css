@@ -1125,6 +1125,12 @@ body.photo-gallery-open {
   font-size: 0.85rem;
 }
 
+.footer-copyright {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-chrome-text-muted);
+}
+
 /* Responsive */
 @media (min-width: 769px) {
   .header-main {

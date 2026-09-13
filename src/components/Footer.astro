@@ -2,6 +2,7 @@
 import { site, categories } from '../lib/data';
 
 const topCategories = categories.filter((c) => c.parent === 0).slice(0, 6);
+const currentYear = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
@@ -11,5 +12,8 @@ const topCategories = categories.filter((c) => c.parent === 0).slice(0, 6);
         <a href={`/kategorie/${cat.slug}/`}>{cat.name}</a>
       ))}
     </nav>
+    <p class="footer-copyright">
+      &copy; {currentYear} <a href={site.siteUrl}>{site.siteName}</a>
+    </p>
   </div>
 </footer>
