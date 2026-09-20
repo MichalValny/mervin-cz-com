@@ -725,18 +725,22 @@ body.header-static .site-header {
 .photo-gallery-viewer {
   position: relative;
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  min-height: 480px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: stretch;
+  height: min(70vh, 560px);
+  min-height: 220px;
   background: #0a0a0a;
   touch-action: none;
 }
 
 .photo-gallery-main-wrap {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
-  min-height: 480px;
+  min-width: 0;
+  min-height: 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -747,10 +751,10 @@ body.header-static .site-header {
 
 .photo-gallery-main {
   display: block;
-  width: 100%;
-  height: 100%;
-  min-height: 480px;
-  max-height: 70vh;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
   background: #0a0a0a;
   transform-origin: center center;
@@ -771,9 +775,10 @@ body.header-static .site-header {
   display: flex;
   align-items: center;
   justify-content: center;
+  align-self: stretch;
   width: 3rem;
-  height: 100%;
-  min-height: 480px;
+  height: auto;
+  min-height: 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -870,7 +875,7 @@ body.photo-gallery-open {
 .photo-gallery-lightbox-img {
   display: block;
   max-width: min(96vw, 1400px);
-  max-height: 88vh;
+  max-height: min(88vh, 88dvh);
   width: auto;
   height: auto;
   object-fit: contain;
@@ -965,14 +970,9 @@ body.photo-gallery-open {
 
 @media (max-width: 640px) {
   .photo-gallery-viewer {
-    min-height: 280px;
-    grid-template-columns: 2.25rem 1fr 2.25rem;
-  }
-
-  .photo-gallery-main-wrap,
-  .photo-gallery-main,
-  .photo-gallery-nav {
-    min-height: 280px;
+    height: min(58dvh, 420px);
+    min-height: 180px;
+    grid-template-columns: 2.25rem minmax(0, 1fr) 2.25rem;
   }
 
   .photo-gallery-nav {
@@ -982,6 +982,44 @@ body.photo-gallery-open {
   .photo-gallery-thumb {
     width: 56px;
     height: 56px;
+  }
+
+  .photo-gallery-lightbox-img {
+    max-width: min(100vw - 1rem, 1400px);
+    max-height: min(82dvh, 82vh);
+  }
+
+  .photo-gallery-lightbox-nav {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .photo-gallery-lightbox-nav--prev {
+    margin-left: 0.35rem;
+  }
+
+  .photo-gallery-lightbox-nav--next {
+    margin-right: 0.35rem;
+  }
+}
+
+@media (max-width: 640px) and (orientation: landscape) {
+  .photo-gallery-viewer {
+    height: min(72dvh, 260px);
+    min-height: 140px;
+  }
+
+  .photo-gallery-filmstrip {
+    padding: 0.45rem 0.75rem;
+  }
+
+  .photo-gallery-thumb {
+    width: 44px;
+    height: 44px;
+  }
+
+  .photo-gallery-lightbox-img {
+    max-height: min(78dvh, 78vh);
   }
 }
 
